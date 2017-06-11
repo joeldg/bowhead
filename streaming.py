@@ -67,7 +67,7 @@ def demo(displayHeartbeat):
                 return
 
             if "instrument" in msg or "tick" in msg or displayHeartbeat:
-		fifo=open('../../quotes','a')
+		fifo=open('quotes','a')
 		fifo.write(line + "\n")
                 #print(line)
 

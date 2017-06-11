@@ -46,7 +46,7 @@ class OandaStreamCommand extends Command {
      *
      * @return void
      */
-    public function fire()
+    public function handle()
     {
         $console = new Console();
 
@@ -61,6 +61,7 @@ class OandaStreamCommand extends Command {
 
             $pipeB = fopen("quotes",'r');
             $line = fgets($pipeB, 2048);
+
             $this->markOHLC($line);
 
             $thisline   = json_decode($line,1);

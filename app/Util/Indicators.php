@@ -788,6 +788,9 @@ class Indicators
         }
 
         $adx = trader_adx($data['high'], $data['low'], $data['close'], $period);
+        if (empty($adx)) {
+            return -9;
+        }
         $adx = array_pop($adx); #[count($adx) - 1];
 
         if ($adx > 50) {

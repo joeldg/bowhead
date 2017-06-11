@@ -113,17 +113,16 @@ class ExampleForexStrategyCommand extends Command {
             foreach($instruments as $instrument) {
                 $buy = $sell = 0;
                 $recentData = $util->getRecentData($instrument);
-
                 $adx         = $indicators->adx($instrument, $recentData);
                 $_sma6       = trader_sma($recentData['close'], 6);
-                $sma6        = array_pop($_sma6);
-                $prior_sma6  = array_pop($_sma6);
+                $sma6        = @array_pop($_sma6);
+                $prior_sma6  = @array_pop($_sma6);
                 $_sma40      = trader_sma($recentData['close'], 40);
-                $sma40       = array_pop($_sma40);
-                $prior_sma40 = array_pop($_sma40);
+                $sma40       = @array_pop($_sma40);
+                $prior_sma40 = @array_pop($_sma40);
                 /** have the lines crossed? */
-                $down_cross  = (($prior_sma6 < $sma40 && $sma6 > $sma40) ? 1 : 0); // 40 dips below 6
-                $up_cross    = (($prior_sma40 < $sma6 && $sma40 > $sma6) ? 1 : 0); // 40 jumps above 6
+                $down_cross  = (($prior_sma6 <= $sma40 && $sma6 > $sma40) ? 1 : 0); // 40 dips below 6
+                $up_cross    = (($prior_sma40 <= $sma6 && $sma40 > $sma6) ? 1 : 0); // 40 jumps above 6
 
 
                 if ($adx == 1 && $down_cross) {
@@ -139,8 +138,8 @@ class ExampleForexStrategyCommand extends Command {
                 $line = $console->colorize(" Signals for $instrument:");
                 $line .= $console->colorize(str_pad("adx:$adx", 7), $this->doColor($adx));
                 $line .= ($down_cross ? $console->colorize(' down_cross', 'light_red') : $console->colorize(' down_cross', 'dark'));
-                $line .= ($up_cross ? $console->colorize(' up_cross', 'light_green') : $console->colorize(' up_cross', 'dark'));
-                echo "$line";
+                $line .= ($up_cross   ? $console->colorize(' up_cross', 'light_green') : $console->colorize(' up_cross', 'dark'));
+                echo "\n$line";
                 /**
                  *  DISPLAY DONE
                  */
@@ -176,7 +175,7 @@ class ExampleForexStrategyCommand extends Command {
                     print_r($position);
                 }
             }
-           sleep(8);
+           sleep(2);
         }
     }
 
