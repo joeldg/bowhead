@@ -1,4 +1,5 @@
 <?php
+
 namespace Bowhead\Console\Commands;
 
 use Bowhead\Console\Kernel;
@@ -9,17 +10,17 @@ use Illuminate\Support\Facades\Cache;
 use AndreasGlaser\PPC\PPC; // https://github.com/andreas-glaser/poloniex-php-client
 
 /**
- * Class ExampleCommand
+ * Class ExampleForexCommand
  * @package Bowhead\Console\Commands
  */
-class ExampleCommand extends Command {
+class ExampleForexStrategyCommand extends Command {
 
     /**
      * The console command name.
      *
      * @var string
      */
-    protected $name = 'bowhead:example_strategy';
+    protected $name = 'bowhead:example_forex_strategy';
 
     /**
      * @var string
@@ -90,7 +91,7 @@ class ExampleCommand extends Command {
         echo "PRESS 'q' TO QUIT AND CLOSE ALL POSITIONS\n\n\n";
         stream_set_blocking(STDIN, 0);
 
-        $instruments = ['BTC/USD'];
+        $instruments = ['USD_JPY','NZD_USD','EUR_GBP','USD_CAD','USD_CNH','USD_MXN','USD_TRY','AUD_USD','EUR_USD','USD_CHF'];
         $util        = new Util\BrokersUtil();
         $wc          = new Util\Whaleclub($this->instrument);
         $console     = new \Bowhead\Util\Console();
@@ -110,37 +111,41 @@ class ExampleCommand extends Command {
             echo "\n";
 
             foreach($instruments as $instrument) {
-                $underbought = $overbought = 0;
+                $buy = $sell = 0;
                 $recentData = $util->getRecentData($instrument);
 
-                $cci = $indicators->cci($instrument, $recentData);
-                $cmo = $indicators->cmo($instrument, $recentData);
-                $mfi = $indicators->mfi($instrument, $recentData);
+                $adx         = $indicators->adx($instrument, $recentData);
+                $_sma6       = trader_sma($recentData['close'], 6);
+                $sma6        = array_pop($_sma6);
+                $prior_sma6  = array_pop($_sma6);
+                $_sma40      = trader_sma($recentData['close'], 40);
+                $sma40       = array_pop($_sma40);
+                $prior_sma40 = array_pop($_sma40);
+                /** have the lines crossed? */
+                $down_cross  = (($prior_sma6 < $sma40 && $sma6 > $sma40) ? 1 : 0); // 40 dips below 6
+                $up_cross    = (($prior_sma40 < $sma6 && $sma40 > $sma6) ? 1 : 0); // 40 jumps above 6
 
-                /** instrument is overbought, we will short */
-                if ($cci == -1 && $cmo == -1 && $mfi == -1) {
-                    $overbought = 1;
+
+                if ($adx == 1 && $down_cross) {
+                    $buy = 1;
                 }
-                /** It is underbought, we will go LONG */
-                if ($cci == 1 && $cmo == 1 && $mfi == 1) {
-                    $underbought = 1;
+                if ($adx == 1 && $up_cross) {
+                    $sell = 1;
                 }
 
                 /**
                  *   THIS SECTION IS FOR DISPLAY
                  */
                 $line = $console->colorize(" Signals for $instrument:");
-                $line .= $console->colorize(str_pad("cci:$cci", 11), $this->doColor($cci));
-                $line .= $console->colorize(str_pad("cmo:$cmo", 9), $this->doColor($cmo));
-                $line .= $console->colorize(str_pad("mfi:$mfi", 9), $this->doColor($mfi));
-                $line .= ($overbought ? $console->colorize(' overbought', 'light_red') : $console->colorize(' overbought', 'dark'));
-                $line .= ($underbought ? $console->colorize(' underbought', 'light_green') : $console->colorize(' underbought', 'dark'));
+                $line .= $console->colorize(str_pad("adx:$adx", 7), $this->doColor($adx));
+                $line .= ($down_cross ? $console->colorize(' down_cross', 'light_red') : $console->colorize(' down_cross', 'dark'));
+                $line .= ($up_cross ? $console->colorize(' up_cross', 'light_green') : $console->colorize(' up_cross', 'dark'));
                 echo "$line";
                 /**
                  *  DISPLAY DONE
                  */
 
-                if ($overbought) {
+                if ($sell) {
                     $console->buzzer();
                     $current_price = array_pop($recentData['close']);
                     $order = [
@@ -155,7 +160,7 @@ class ExampleCommand extends Command {
                     $console->colorize("\nOPENED NEW SHORT POSIITION");
                     print_r($position);
                 }
-                if ($underbought) {
+                if ($buy) {
                     $console->buzzer();
                     $current_price = array_pop($recentData['close']);
                     $order = [

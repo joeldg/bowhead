@@ -185,6 +185,13 @@ class BrokersUtil
      */
     public function organizePairData($datas)
     {
+        $ret['date']   = [];
+        $ret['low']    = [];
+        $ret['high']   = [];
+        $ret['open']   = [];
+        $ret['close']  = [];
+        $ret['volume'] = [];
+
         $ret = array();
         foreach ($datas as $data) {
             $ret['date'][]   = $data->buckettime;
@@ -223,7 +230,7 @@ class BrokersUtil
      *
      * @return array
      */
-    public function getRecentData($pair='ETH-USD', $limit=168, $day_data=false, $hour=12, $returnRS=false)
+    public function getRecentData($pair='BTC/USD', $limit=168, $day_data=false, $hour=12, $returnRS=false)
     {
         /**
          *  we need to cache this as many strategies will be
@@ -233,25 +240,14 @@ class BrokersUtil
         if(\Cache::has($key)) {
             return \Cache::get($key);
         }
-        if ($day_data) {
-            /**
-             *  only select one per day, using noon by default
-             */
-            $a = \DB::table('historical')
-                ->select(DB::raw('*, unix_timestamp(buckettime) as ts, HOUR(buckettime) AS buckethour'))
-                ->where('pair', $pair)
-                ->where(DB::raw('HOUR(buckettime)'), '=' ,$hour)
-                ->orderby('buckettime', 'DESC')
-                ->limit($limit)
-                ->get();
-        } else {
-            $a = \DB::table('historical')
-                ->select(DB::raw('*, unix_timestamp(buckettime) as ts, HOUR(buckettime) AS buckethour'))
-                ->where('pair', $pair)
-                ->orderby('buckettime', 'DESC')
-                ->limit($limit)
-                ->get();
-        }
+
+        $a = \DB::table('bowhead_ohlc')
+            ->select(DB::raw('*, unix_timestamp(ctime) as buckettime'))
+            ->where('instrument', $pair)
+            ->orderby('timeid', 'DESC')
+            ->limit($limit)
+            ->get();
+
         if ($returnRS) {
             $ret = $a;
         } else {
@@ -270,7 +266,7 @@ class BrokersUtil
      *
      * @return array
      */
-    public function getDateData($pair='ETH-USD', $datetime=null, $limit=168)
+    public function getDateData($pair='BTC/USD', $datetime=null, $limit=168)
     {
         $a = \DB::table('historical')
             ->select('*')

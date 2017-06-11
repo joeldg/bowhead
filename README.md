@@ -22,7 +22,7 @@ This project has a companion article which walks you through how to set it up an
 setting up your first strategy and running it on [Whaleclub](https://whaleclub.co/join/tn6uE) 
 and on [1Broker](https://1broker.com/?r=21434), which you will need accounts on both.
  
-[You can find the companion article HERE]()
+[You can find the companion article HERE](https://medium.com/@joeldg/an-advanced-tutorial-a-new-crypto-currency-trading-bot-boilerplate-framework-e777733607ae)
 
 I highly suggest you read through it and follow along to get it up and running.
 
@@ -75,4 +75,17 @@ I am open to suggestions for how to get it to work on Windows
  ╚════════╧══════════════════════════════════════╝
 ````
 
+DONE:
+1) Write my own Coinbase, Whaleclub, 1Broker wrappers.
+2) Create Indicators wrapper for TALib.
+3) Create Candles wrapper for TALib
+4) Collect console functions into one Console class.
+5) Streaming data from Oanda
+6) Streaming data from Bitfinex
+
+TODO:
+1) Standardize the calls to brokerages so the method names are the same across all of them.
+2) Generalized object wrapper for brokerages.
+3) Write my own Oanda, Bitfinex and Poloniex API wrappers.
+4) reporting, logging and backtesting tools.
 

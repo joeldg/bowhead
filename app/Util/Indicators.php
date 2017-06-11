@@ -93,9 +93,9 @@ class Indicators
      * This algorithm uses ATR as a momentum strategy, but the same signal can be used for
      * a reversion strategy, since ATR doesn't indicate the price direction (like adx below)
      */
-    public function atr($pair='ETH-USD', $data=null, $period=14)
+    public function atr($pair='BTC/USD', $data=null, $period=14)
     {
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair);
         }
@@ -153,9 +153,9 @@ class Indicators
      * Once a breakout occurs, we enter a trade on whatever side the price makes its breakout.
      */
 
-    public function bollingerBands($pair='ETH-USD', $data=null, $period=10)
+    public function bollingerBands($pair='BTC/USD', $data=null, $period=10)
     {
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair);
         }
@@ -201,9 +201,9 @@ class Indicators
      * One way to use MACD is to wait for the fast line to “cross over” or “cross under” the slow line and
      * enter the trade accordingly because it signals a new trend.
      */
-    public function macd($pair='ETH-USD', $data=null, $period=10)
+    public function macd($pair='BTC/USD', $data=null, $period=10)
     {
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair);
         }
@@ -248,13 +248,13 @@ class Indicators
      *      TODO This will be for various backtesting and tests
      *      all periods are ranges of 2 to 100,000
      */
-    public function macdext($pair='ETH-USD', $data=null, $fastPeriod=12, $fastMAType=0, $slowPeriod=26, $slowMAType=0, $signalPeriod=9, $signalMAType=0)
+    public function macdext($pair='BTC/USD', $data=null, $fastPeriod=12, $fastMAType=0, $slowPeriod=26, $slowMAType=0, $signalPeriod=9, $signalMAType=0)
     {
         $fastMAType   = $this->ma_type($fastMAType);
         $slowMAType   = $this->ma_type($slowMAType);
         $signalMAType = $this->ma_type($signalMAType);
 
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair);
         }
@@ -295,12 +295,12 @@ class Indicators
      * RSI can also be used to confirm trend formations. If you think a trend is forming, wait for
      * RSI to go above or below 50 (depending on if you’re looking at an uptrend or downtrend) before you enter a trade.
      */
-    public function rsi($pair='ETH-USD', $data=null, $period=14)
+    public function rsi($pair='BTC/USD', $data=null, $period=14)
     {
         $LOW_RSI  = 30;
         $HIGH_RSI = 70;
 
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair);
         }
@@ -339,9 +339,9 @@ class Indicators
      * When the moving average lines are above 80, it means that the market is overbought and we should look to sell.
      * When the moving average lines are below 20, it means that the market is oversold and we should look to buy.
      */
-    public function stoch($pair='ETH-USD', $data=null, $matype1=TRADER_MA_TYPE_SMA, $matype2=TRADER_MA_TYPE_SMA)
+    public function stoch($pair='BTC/USD', $data=null, $matype1=TRADER_MA_TYPE_SMA, $matype2=TRADER_MA_TYPE_SMA)
     {
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair);
         }
@@ -384,9 +384,9 @@ class Indicators
      *
      *  fast stoch
      */
-    public function stochf($pair='ETH-USD', $data=null, $matype1=TRADER_MA_TYPE_SMA, $matype2=TRADER_MA_TYPE_SMA)
+    public function stochf($pair='BTC/USD', $data=null, $matype1=TRADER_MA_TYPE_SMA, $matype2=TRADER_MA_TYPE_SMA)
     {
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair);
         }
@@ -434,9 +434,9 @@ class Indicators
      * using return_raw you can watch for saucers and peaks and will need to
      * create a strategy for those if you want to use them.
      */
-    public function awesome_oscillator($pair='ETH-USD', $data=null, $return_raw=false)
+    public function awesome_oscillator($pair='BTC/USD', $data=null, $return_raw=false)
     {
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair);
         }
@@ -479,9 +479,9 @@ class Indicators
      *
      *      Money flow index
      */
-    public function mfi($pair='ETH-USD', $data=null, $period=14)
+    public function mfi($pair='BTC/USD', $data=null, $period=14)
     {
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair);
         }
@@ -511,9 +511,9 @@ class Indicators
      *
      *      use with mfi to confirm
      */
-    public function obv($pair='ETH-USD', $data=null, $period=14)
+    public function obv($pair='BTC/USD', $data=null, $period=14)
     {
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair, $period, true, 12); // getting day 'noon' data for last two weeks
         }
@@ -557,9 +557,9 @@ class Indicators
      * These are best used in trending markets that consist of long rallies and downturns.
      * $acceleration=0.02, $maximum=0.02 are tradingview defaults
      */
-    public function sar($pair='ETH-USD', $data=null, $period=14, $acceleration=0.02, $maximum=0.02)
+    public function sar($pair='BTC/USD', $data=null, $period=14, $acceleration=0.02, $maximum=0.02)
     {
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair, $period, true, 12); // getting day 'noon' data for last two weeks
         }
@@ -599,10 +599,10 @@ class Indicators
      *  This is a forex version of SAR which is used with Stoch.
      *  The idea is the positioning of the sar is above 'certain' kinds of candles
      */
-    public function fsar($pair='ETH-USD', $data=null, $period=14, $acceleration=0.02, $maximum=0.02)
+    public function fsar($pair='BTC/USD', $data=null, $period=14, $acceleration=0.02, $maximum=0.02)
     {
         $console = new \Bowhead\Util\Console();
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair, $period, true, 12); // getting day 'noon' data for last two weeks
         }
@@ -686,9 +686,9 @@ class Indicators
      *
      *      Commodity Channel Index
      */
-    public function cci($pair='ETH-USD', $data=null, $period=14)
+    public function cci($pair='BTC/USD', $data=null, $period=14)
     {
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair);
         }
@@ -715,9 +715,9 @@ class Indicators
      *
      *      Chande Momentum Oscillator
      */
-    public function cmo($pair='ETH-USD', $data=null, $period=14)
+    public function cmo($pair='BTC/USD', $data=null, $period=14)
     {
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair);
         }
@@ -743,9 +743,9 @@ class Indicators
      *
      *      Aroon Oscillator
      */
-    public function aroonosc($pair='ETH-USD', $data=null, $period=14)
+    public function aroonosc($pair='BTC/USD', $data=null, $period=14)
     {
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair);
         }
@@ -780,9 +780,9 @@ class Indicators
      * ADX can also be used to determine when one should close a trade early. For instance, when ADX starts to slide below 50,
      * it indicates that the current trend is possibly losing steam.
      */
-    public function adx($pair='ETH-USD', $data=null, $period=14)
+    public function adx($pair='BTC/USD', $data=null, $period=14)
     {
-        $util = new Util();
+        $util = new BrokersUtil();
         if (empty($data)) {
             $data = $util->getRecentData($pair);
         }
@@ -858,7 +858,7 @@ class Indicators
      *      slower than built-in functions as it has to call out to python passing data through
      *      redis.
      */
-    public function prediction($which='close', $pair='ETH-USD', $start=null, $end=null) {
+    public function prediction($which='close', $pair='BTC/USD', $start=null, $end=null) {
         $a = \DB::table('historical')
             ->select('*')
             ->where('pair', $pair)

@@ -18,6 +18,8 @@ class Kernel extends ConsoleKernel
         Commands\GetHistoricalCommand::class,
         Commands\OandaStreamCommand::class,
         Commands\ExampleUsageCommand::class,
+        Commands\ExampleCommand::class,
+        Commands\ExampleForexStrategyCommand::class,
     ];
 
     /**

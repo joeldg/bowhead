@@ -121,9 +121,9 @@ class Candles
      *          - current   = candle found in the single most recent
      *          - datafor   = close data surrounding the candle on either side
      */
-    public function allCandles($pair='ETH-USD', $data=null)
+    public function allCandles($pair='BTC/USD', $data=null)
     {
-        $util = new Util();
+        $util = new BrokersUtil();
         $ret = array();
         if (empty($data)) {
             $data = $util->getRecentData($pair);

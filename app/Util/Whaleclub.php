@@ -6,8 +6,7 @@
  * Time: 9:36 PM
  */
 
-namespace Bowhead\Strategy;
-use Bowhead\Util;
+namespace Bowhead\Util;
 
 /**
  * Class orcaStrategy
@@ -64,7 +63,7 @@ class Whaleclub
      */
     function __construct($instrument)
     {
-        $this->token = env('WHALECLUB_DEMO_TOKEN');
+        $this->token = env('WHALECLUB_TOKEN');
         $this->instrument = $instrument;
     }
 
@@ -279,8 +278,8 @@ class Whaleclub
      */
     public function positionNew($order=array())
     {
-        $order['size'] = 0.2*100000000;
-
+        // size is passed in satoshi units, which are BTC parts of 100,000,000
+        $order['size']                  = ($order['size']*100000000) ?? (0.01*100000000);
         $order['direction']             = $order['direction'] ?? 'long';
         $order['market']                = $order['market']    ?? $this->instrument;
         $order['leverage']              = $order['leverage']  ?? 10;

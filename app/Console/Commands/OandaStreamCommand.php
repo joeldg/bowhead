@@ -1,7 +1,7 @@
 <?php
 namespace Bowhead\Console\Commands;
 
-use Bowhead\App\Util\Console;
+use Bowhead\Util\Console;
 use Illuminate\Console\Command;
 
 class OandaStreamCommand extends Command {
@@ -18,7 +18,7 @@ class OandaStreamCommand extends Command {
      *
      * @var string
      */
-    protected $description = 'Run my command.';
+    protected $description = 'The Oanda stream processor.';
 
     public function markOHLC($ticker)
     {

@@ -8,6 +8,19 @@ namespace Bowhead\Util;
 class Console
 {
     /**
+     * @return null
+     *  buzz the console to get the users attention.
+     */
+    public function buzzer()
+    {
+        echo "\x07";
+        echo "\x07";
+        echo "\x07";
+        return null;
+    }
+
+
+    /**
      * @param     $str
      * @param int $l
      *
