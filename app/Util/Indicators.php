@@ -1,0 +1,978 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: joeldg
+ * Date: 4/13/17
+ * Time: 6:26 PM
+ */
+namespace Bowhead\Util;
+
+use Bowhead\Util\Util;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+
+/**
+ * Class Indicators
+ * @package Bowhead\Util
+ *
+ *          signal functions should return 1 for buy -1 for sell and 0 for no change
+ *          other functions can return single floats for predictions.
+ *
+ *          all signal functions can be called alone, with just a pair or a just a pair and data
+ *          time periods can be tweaked in backtesting and regression testing.
+ *
+ *          TODO: port over 'Ichimoku Kinko Hyo' (Ichimoku Cloud) for basic signals
+ *          http://www.babypips.com/school/elementary/common-chart-indicators/summary-common-chart-indicators.html
+ *          http://stockcharts.com/school/doku.php?id=chart_school:trading_strategies:ichimoku_cloud
+ *          http://jsfiddle.net/oscglezm/phq7yo9y/
+ *
+ *          Types of indicators:
+ *          overlap studies: BBANDS,DEMA,EMA,HT_TRENDLINE,KAMA,MA,MAMA,MAVP,MIDPOINT,MIDPRICE,SAR,SAREXT,SMA,T3,TEMA,TRIMA,WMA
+ *          momentum indicators: ADX,ADXR,APO,AROON,AROONOSC,BOP,CCI,CMO,DX,MACD,MACDEXT,MACDFIX,MFI,MINUS_DI,MINUS_DM,
+ *                               MOM,PLUS_DI,PLUS_DM,PPO,ROC,ROCP,ROCR,ROCR100,RSI,STOCH,STOCHF,STOCHRSI,TRIX,ULTOSC,WILLR
+ *          volume indicators: AD,ADOSC,OBV
+ *          volatility indicators: ATR,NATR,TRANGE
+ *          cycle indicators: HT_DCPERIOD,HT_DCPHASE,HT_PHASOR,HT_SINE,HT_TRENDMODE
+ */
+class Indicators
+{
+    /**
+     * @var array
+     *      array with the available types of moving averages
+     */
+    public $mas = array('sma','ema','wma','dema','tema','trima','kama','mama','t3');
+
+    /**
+     * @var array
+     *      array with the available types of buy/sell signals
+     *      'aroonosc','cmo','cci','mfi' = a good group with volume
+     */
+    public $available_signals = array('adx','aroonosc','cmo','sar','cci','mfi','obv','stoch','rsi','macd','bollingerBands','atr');
+
+    /**
+     * @param $ma
+     *
+     * @return mixed
+     * built-in types of moving averages.
+     * http://php.net/manual/en/trader.constants.php
+     * 'sma','ema','wma','dema','tema','trima','kama','mama','t3'
+     */
+    public function ma_type($ma)
+    {
+        if (!in_array($ma, $this->mas)) {
+            return 0; // simple
+        }
+        $types = array(
+            'sma'   => TRADER_MA_TYPE_SMA,   // simple moving average
+            'ema'   => TRADER_MA_TYPE_EMA,   // exponential moving average
+            'wma'   => TRADER_MA_TYPE_WMA,   // weighted moving average
+            'dema'  => TRADER_MA_TYPE_DEMA,  // Double Exponential Moving Average
+            'tema'  => TRADER_MA_TYPE_TEMA,  // Triple Exponential Moving Average
+            'trima' => TRADER_MA_TYPE_TRIMA, // Triangular Moving Average
+            'kama'  => TRADER_MA_TYPE_KAMA,  // Kaufman's Adaptive Moving Average
+            'mama'  => TRADER_MA_TYPE_MAMA,  // The Mother of Adaptive Moving Average
+            't3'    => TRADER_MA_TYPE_T3     // The Triple Exponential Moving Average
+        );
+        return $types[$ma];
+    }
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param int    $period
+     *
+     * @return int
+     *
+     * Average True Range
+     * http://www.investopedia.com/articles/trading/08/atr.asp
+     * The idea is to use ATR to identify breakouts, if the price goes higher than
+     * the previous close + ATR, a price breakout has occurred.
+     *
+     * The position is closed when the price goes 1 ATR below the previous close.
+     *
+     * This algorithm uses ATR as a momentum strategy, but the same signal can be used for
+     * a reversion strategy, since ATR doesn't indicate the price direction (like adx below)
+     */
+    public function atr($pair='ETH-USD', $data=null, $period=14)
+    {
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+        if ($period > count($data['close'])) {
+            $period = round(count($data['close'])/2);
+        }
+        $data2 = $data;
+        $prev_close = array_pop($data2['close']); #[count($data['close']) - 2]; // prior close
+        $current = array_pop($data2['close']); #[count($data['close']) - 1];    // we assume this is current
+
+        $atr = trader_atr ($data['high'], $data['low'], $data['close'], $period);
+        $atr = array_pop($atr) ; #[count($atr)-1]; // pick off the last
+
+        # An upside breakout occurs when the price goes 1 ATR above the previous close
+        $upside_signal = ($current - ($prev_close + $atr));
+
+        # A downside breakout occurs when the previous close is 1 ATR above the price
+        $downside_signal = ($prev_close - ($current + $atr));
+
+        if ($upside_signal > 0) {
+            return 1; // buy
+        } elseif ($downside_signal > 0){
+            return -1; // sell
+        }
+        return 0;
+    }
+
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param int    $period
+     *
+     * @return int
+     *
+     * This algorithm uses the talib Bollinger Bands function to determine entry entry
+     * points for long and sell/short positions.
+     *
+     * When the price breaks out of the upper Bollinger band, a sell or short position
+     * is opened. A long position is opened when the price dips below the lower band.
+     *
+     *
+     * Used to measure the market’s volatility.
+     * They act like mini support and resistance levels.
+     * Bollinger Bounce
+     *
+     * A strategy that relies on the notion that price tends to always return to the middle of the Bollinger bands.
+     * You buy when the price hits the lower Bollinger band.
+     * You sell when the price hits the upper Bollinger band.
+     * Best used in ranging markets.
+     * Bollinger Squeeze
+     *
+     * A strategy that is used to catch breakouts early.
+     * When the Bollinger bands “squeeze”, it means that the market is very quiet, and a breakout is eminent.
+     * Once a breakout occurs, we enter a trade on whatever side the price makes its breakout.
+     */
+
+    public function bollingerBands($pair='ETH-USD', $data=null, $period=10)
+    {
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+        $data2 = $data;
+        #$prev_close = array_pop($data2['close']); #[count($data['close']) - 2]; // prior close
+        $current = array_pop($data2['close']); #[count($data['close']) - 1];    // we assume this is current
+
+        # array $real [, integer $timePeriod [, float $nbDevUp [, float $nbDevDn [, integer $mAType ]]]]
+        $bbands = trader_bbands($data['close'], $period, 2, 2, 0);
+        $upper  = $bbands[0];
+        #$middle = $bbands[1]; // we'll find a use for you, one day
+        $lower  = $bbands[2];
+
+        # If price is below the recent lower band
+        if ($current <= array_pop($lower)) {
+            return 1; // buy long
+        # If price is above the recent upper band
+        } elseif ($current >= array_pop($upper)) {
+            return -1; // sell (or short)
+        } else {
+            return 0; // notta
+        }
+    }
+
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param int    $period
+     *
+     * @return int
+     *
+     * Moving Average Crossover Divergence (MACD) indicator as a buy/sell signal.
+     * When the MACD signal less than 0, the price is trending down and it's time to sell.
+     * When the MACD signal greater than 0, the price is trending up it's time to buy.
+     *
+     * Used to catch trends early and can also help us spot trend reversals.
+     * It consists of 2 moving averages (1 fast, 1 slow) and vertical lines called a histogram,
+     * which measures the distance between the 2 moving averages.
+     * Contrary to what many people think, the moving average lines are NOT moving averages of the price.
+     * They are moving averages of other moving averages.
+     * MACD’s downfall is its lag because it uses so many moving averages.
+     * One way to use MACD is to wait for the fast line to “cross over” or “cross under” the slow line and
+     * enter the trade accordingly because it signals a new trend.
+     */
+    public function macd($pair='ETH-USD', $data=null, $period=10)
+    {
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+
+        # Create the MACD signal and pass in the three parameters: fast period, slow period, and the signal.
+        # we will want to tweak these periods later for now these are fine.
+        #  data, fast period, slow period, signal period (2-100000)
+
+        # array $real [, integer $fastPeriod [, integer $slowPeriod [, integer $signalPeriod ]]]
+        $macd = trader_macd($data['close'], 12, 26, 9);
+        $macd_raw = $macd[0];
+        $signal   = $macd[1];
+        $hist     = $macd[2];
+
+        #$macd = $macd_raw[count($macd_raw)-1] - $signal[count($signal)-1];
+        $macd = (array_pop($macd_raw) - array_pop($signal));
+        # Close position for the pair when the MACD signal is negative
+        if ($macd < 0) {
+            return -1;
+        # Enter the position for the pair when the MACD signal is positive
+        } elseif ($macd > 0) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param int    $fastPeriod
+     * @param int    $fastMAType
+     * @param int    $slowPeriod
+     * @param int    $slowMAType
+     * @param int    $signalPeriod
+     * @param int    $signalMAType
+     *
+     * @return int
+     *
+     *      MACD indicator with controllable types and tweakable periods.
+     *
+     *      TODO This will be for various backtesting and tests
+     *      all periods are ranges of 2 to 100,000
+     */
+    public function macdext($pair='ETH-USD', $data=null, $fastPeriod=12, $fastMAType=0, $slowPeriod=26, $slowMAType=0, $signalPeriod=9, $signalMAType=0)
+    {
+        $fastMAType   = $this->ma_type($fastMAType);
+        $slowMAType   = $this->ma_type($slowMAType);
+        $signalMAType = $this->ma_type($signalMAType);
+
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+
+        # Create the MACD signal and pass in the three parameters: fast period, slow period, and the signal.
+        # we will want to tweak these periods later for now these are fine.
+        $macd = trader_macdext($data['close'], $fastPeriod, $fastMAType, $slowPeriod, $slowMAType, $signalPeriod, $signalMAType);
+        $macd_raw = $macd[0];
+        $signal   = $macd[1];
+        $hist     = $macd[2];
+        if (!empty($macd)) {
+            $macd = array_pop($macd[0]) - array_pop($macd[1]); #$macd_raw[count($macd_raw)-1] - $signal[count($signal)-1];
+            # Close position for the pair when the MACD signal is negative
+            if ($macd < 0) {
+                return -1;
+                # Enter the position for the pair when the MACD signal is positive
+            } elseif ($macd > 0) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+        print_r($macd);
+        return -2;
+    }
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param int    $period
+     *
+     * @return int
+     * Relative Strength Index indicator as a buy/sell signal.
+     *
+     * Similar to the stochastic in that it indicates overbought and oversold conditions.
+     * When RSI is above 70, it means that the market is overbought and we should look to sell.
+     * When RSI is below 30, it means that the market is oversold and we should look to buy.
+     * RSI can also be used to confirm trend formations. If you think a trend is forming, wait for
+     * RSI to go above or below 50 (depending on if you’re looking at an uptrend or downtrend) before you enter a trade.
+     */
+    public function rsi($pair='ETH-USD', $data=null, $period=14)
+    {
+        $LOW_RSI  = 30;
+        $HIGH_RSI = 70;
+
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+        #$data2 = $data;
+        #$current = array_pop($data2['close']); #$data['close'][count($data['close']) - 1];    // we assume this is current
+        #$prev_close = array_pop($data2['close']); #$data['close'][count($data['close']) - 2]; // prior close
+
+        $rsi = trader_rsi ($data['close'], $period);
+        $rsi = array_pop($rsi); #$rsi[count($rsi)-1]; // pick off the last
+
+        # RSI is above 70 and we own, sell
+        if ($rsi > $HIGH_RSI) {
+            return -1;
+        # RSI is below 30, buy
+        } elseif ($rsi < $LOW_RSI) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param        $matype1
+     * @param        $matype2
+     *
+     * @return int
+     *
+     * STOCH function to determine entry and exit points.
+     * When the stochastic oscillator dips below 10, the pair is determined to be oversold
+     * and a long position is opened. The position is exited when the indicator rises above 90
+     * because the pair is thought to be overbought.
+     *
+     * Used to indicate overbought and oversold conditions.
+     * When the moving average lines are above 80, it means that the market is overbought and we should look to sell.
+     * When the moving average lines are below 20, it means that the market is oversold and we should look to buy.
+     */
+    public function stoch($pair='ETH-USD', $data=null, $matype1=TRADER_MA_TYPE_SMA, $matype2=TRADER_MA_TYPE_SMA)
+    {
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+        if (empty($data['high'])) {
+            return 0;
+        }
+        #$prev_close = $data['close'][count($data['close']) - 2]; // prior close
+        #$current = $data['close'][count($data['close']) - 1];    // we assume this is current
+
+        #high,low,close, fastk_period, slowk_period, slowk_matype, slowd_period, slowd_matype
+        $stoch = trader_stoch($data['high'], $data['low'], $data['close'], 13, 3, $matype1, 3, $matype2);
+        $slowk = $stoch[0];
+        $slowd = $stoch[1];
+
+        $slowk = array_pop($slowk); #$slowk[count($slowk) - 1];
+        $slowd = array_pop($slowd); #$slowd[count($slowd) - 1];
+
+        #echo "\n(SLOWK: $slowk SLOWD: $slowd)";
+
+        # If either the slowk or slowd are less than 10, the pair is
+        # 'oversold,' a long position is opened
+        if ($slowk < 10 || $slowd < 10) {
+            return 1;
+        # If either the slowk or slowd are larger than 90, the pair is
+        # 'overbought' and the position is closed.
+        }elseif ($slowk > 90 || $slowd > 90) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param        $matype1
+     * @param        $matype2
+     *
+     * @return int
+     *
+     *  fast stoch
+     */
+    public function stochf($pair='ETH-USD', $data=null, $matype1=TRADER_MA_TYPE_SMA, $matype2=TRADER_MA_TYPE_SMA)
+    {
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+        if (empty($data['high'])) {
+            return 0;
+        }
+        #$prev_close = $data['close'][count($data['close']) - 2]; // prior close
+        #$current = $data['close'][count($data['close']) - 1];    // we assume this is current
+
+        #high,low,close, fastk_period, slowk_period, slowk_matype, slowd_period, slowd_matype
+        $stoch = trader_stochf($data['high'], $data['low'], $data['close'], 13, 3, $matype1);
+        $fastk = $stoch[0];
+        $fastd = $stoch[1];
+
+        $fastk = array_pop($fastk); #$slowk[count($slowk) - 1];
+        $fastd = array_pop($fastd); #$slowd[count($slowd) - 1];
+
+        # If either the slowk or slowd are less than 10, the pair is
+        # 'oversold,' a long position is opened
+        if ($fastk < 10 || $fastd < 10) {
+            return 1;
+            # If either the slowk or slowd are larger than 90, the pair is
+            # 'overbought' and the position is closed.
+        }elseif ($fastk > 90 || $fastd > 90) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param bool   $return_raw
+     *
+     * @return int|mixed
+     *
+     * created based on calculation here
+     * https://www.tradingview.com/wiki/Awesome_Oscillator_(AO)
+     * AO = SMA(High+Low)/2, 5 Periods) - SMA(High+Low/2, 34 Periods)
+     *
+     * a momentum indicator
+     * This function just watches for zero-line crossover.
+     * using return_raw you can watch for saucers and peaks and will need to
+     * create a strategy for those if you want to use them.
+     */
+    public function awesome_oscillator($pair='ETH-USD', $data=null, $return_raw=false)
+    {
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+        $data['mid'] = [];
+        foreach($data['high'] as $high_key => $high_alue) {
+            $data['mid'][$high_key] = (($data['high'][$high_key] + $data['low'][$high_key])/2);
+        }
+        $ao_sma_1 = trader_sma($data['mid'], 5);
+        $ao_sma_2 = trader_sma($data['mid'], 34);
+
+        array_pop($data['mid']); // take most recent off.
+        $ao_sma_3 = trader_sma($data['mid'], 5);
+        $ao_sma_4 = trader_sma($data['mid'], 34);
+
+        if ($return_raw) {
+            return ($ao_sma_1 - $ao_sma_2); // return the actual values of the oscillator
+        } else {
+            $ao_prior = (array_pop($ao_sma_3) - array_pop($ao_sma_4)); // last 'tick'
+            $ao_now   = (array_pop($ao_sma_1) - array_pop($ao_sma_2)); // current 'tick'
+
+            /** Bullish cross */
+            if ($ao_prior <= 0 && $ao_now > 0) {
+                return 100;
+            /** Bearish cross */
+            } elseif($ao_prior >= 0 && $ao_now < 0){
+                return -100;
+            } else {
+                return 0;
+            }
+        }
+    }
+
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param int    $period
+     *
+     * @return int
+     *
+     *      Money flow index
+     */
+    public function mfi($pair='ETH-USD', $data=null, $period=14)
+    {
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+
+        $mfi = trader_mfi($data['high'], $data['low'], $data['close'], $data['volume'], $period);
+        $mfi = array_pop($mfi); #[count($mfi) - 1];
+
+        if ($mfi > 80) {
+            return -1; // overbought
+        } elseif ($mfi < 10) {
+            return 1;  // underbought
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param int    $period
+     *
+     * @return int
+     *
+     *      On Balance Volume
+     *      http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:on_balance_volume_obv
+     *      signal assumption that volume precedes price on confirmation, divergence and breakouts
+     *
+     *      use with mfi to confirm
+     */
+    public function obv($pair='ETH-USD', $data=null, $period=14)
+    {
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair, $period, true, 12); // getting day 'noon' data for last two weeks
+        }
+
+        $_obv = trader_obv($data['close'], $data['volume']);
+        $current_obv = array_pop($_obv); #[count($_obv) - 1];
+        $prior_obv   = array_pop($_obv); #[count($_obv) - 2];
+        $earlier_obv = array_pop($_obv); #[count($_obv) - 3];
+
+        /**
+         *   This forecasts a trend in the last three periods
+         *   TODO: this needs to be tested more, we might need to look closer for crypto currencies
+         */
+        if (($current_obv > $prior_obv) && ($prior_obv > $earlier_obv)) {
+            return 1;
+        } elseif (($current_obv < $prior_obv) && ($prior_obv < $earlier_obv)) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param int    $period
+     * @param int    $acceleration
+     * @param int    $maximum
+     *
+     * @return int
+     *
+     *      Parabolic Stop And Reversal (SAR)
+     *
+     *  http://www.babypips.com/school/elementary/common-chart-indicators/parabolic-sar.html
+     *
+     * This indicator is made to spot trend reversals, hence the name Parabolic Stop And Reversal (SAR).
+     * This is the easiest indicator to interpret because it only gives bullish and bearish signals.
+     * When the dots are above the candles, it is a sell signal.
+     * When the dots are below the candles, it is a buy signal.
+     * These are best used in trending markets that consist of long rallies and downturns.
+     * $acceleration=0.02, $maximum=0.02 are tradingview defaults
+     */
+    public function sar($pair='ETH-USD', $data=null, $period=14, $acceleration=0.02, $maximum=0.02)
+    {
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair, $period, true, 12); // getting day 'noon' data for last two weeks
+        }
+
+        // SEE TODO: http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:parabolic_sar
+        # array $high , array $low [, float $acceleration [, float $maximum ]]
+        $_sar = trader_sar($data['high'], $data['low'], $acceleration, $maximum);
+        $current_sar = array_pop($_sar); #[count($_sar) - 1];
+        $prior_sar   = array_pop($_sar); #[count($_sar) - 2];
+        $earlier_sar = array_pop($_sar); #[count($_sar) - 3];
+
+        $last_high = array_pop($data['high']); #[count($data['high'])-1];
+        $last_low  = array_pop($data['low']); #[count($data['low'])-1];
+
+        /**
+         *  if the last three SAR points are above the candle (high) then it is a sell signal
+         *  if the last three SAE points are below the candle (low) then is a buy signal
+         */
+        if (($current_sar > $last_high) && ($prior_sar > $last_high) && ($earlier_sar > $last_high)) {
+            return -1; //sell
+        } elseif (($current_sar < $last_low) && ($prior_sar < $last_low) && ($earlier_sar < $last_low)) {
+            return 1; // buy
+        } else {
+            return 0; // hold
+        }
+    }
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param int    $period
+     * @param float  $acceleration
+     * @param int    $maximum
+     *
+     * @return int
+     *
+     *  This is a forex version of SAR which is used with Stoch.
+     *  The idea is the positioning of the sar is above 'certain' kinds of candles
+     */
+    public function fsar($pair='ETH-USD', $data=null, $period=14, $acceleration=0.02, $maximum=0.02)
+    {
+        $console = new \Bowhead\Util\Console();
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair, $period, true, 12); // getting day 'noon' data for last two weeks
+        }
+        if (empty($data['high'])) {
+            return 0;
+        }
+        # array $high , array $low [, float $acceleration [, float $maximum ]]
+        $_sar = trader_sar($data['high'], $data['low'], $acceleration, $maximum);
+        $current_sar = (float) array_pop($_sar);
+        $prior_sar   = (float) array_pop($_sar);
+        $prev_sar    = (float) array_pop($_sar);
+
+        $last_high  = (float) array_pop($data['high']);
+        $last_low   = (float) array_pop($data['low']);
+        $last_open  = (float) array_pop($data['open']);
+        $last_close = (float) array_pop($data['close']);
+
+        $prior_high  = (float) array_pop($data['high']);
+        $prior_low   = (float) array_pop($data['low']);
+        $prior_open  = (float) array_pop($data['open']);
+        $prior_close = (float) array_pop($data['close']);
+
+        #$prev_high  = (float) array_pop($data['high']);
+        #$prev_low   = (float) array_pop($data['low']);
+        $prev_open  = (float) array_pop($data['open']);
+        $prev_close = (float) array_pop($data['close']);
+
+        $below        = $this->compareFloatNumbers($current_sar, $last_low, '<');
+        $above        = $this->compareFloatNumbers($current_sar, $last_high,'>');
+        $red_candle   = $this->compareFloatNumbers($last_open, $last_close, '<');
+        $green_candle = $this->compareFloatNumbers($last_open, $last_close, '>');
+
+        $prior_below        = $this->compareFloatNumbers($prior_sar, $prior_low, '<');
+        $prior_above        = $this->compareFloatNumbers($prior_sar, $prior_high, '>');
+        $prior_red_candle   = $this->compareFloatNumbers($prior_open, $prior_close, '<');
+        $prior_green_candle = $this->compareFloatNumbers($prior_open, $prior_close, '>');
+
+        #$prev_below        = $this->compareFloatNumbers($prev_sar, $prev_low, '<');
+        #$prev_above        = $this->compareFloatNumbers($prev_sar, $prev_high, '>');
+        $prev_red_candle   = $this->compareFloatNumbers($prev_open, $prev_close, '<');
+        $prev_green_candle = $this->compareFloatNumbers($prev_open, $prev_close, '>');
+
+        $prior_red_candle   = ($prev_red_candle || $prior_red_candle ? true : false);
+        $prior_green_candle = ($prev_green_candle || $prior_green_candle ? true : false);
+
+        // TODO this is useful for testing
+        /**
+        $line = "";
+        $line .= "(" . ($prior_above        ? $console->colorize('prior_above', 'light_green') : $console->colorize('prior_above', 'dark'));
+        $line .= " " . ($prior_red_candle   ? $console->colorize('prior_red', 'light_green')   : $console->colorize('prior_red', 'dark'));
+        $line .= " " . ($below              ? $console->colorize('below', 'light_green')       : $console->colorize('below', 'dark'));
+        $line .= " " . ($green_candle       ? $console->colorize('green', 'light_green')       : $console->colorize('green', 'dark'));
+        $line .= ")-";
+        $line .= "(" . ($prior_below        ? $console->colorize('prior_below', 'light_red')   : $console->colorize('prior_below', 'dark'));
+        $line .= " " . ($prior_green_candle ? $console->colorize('prior_green', 'light_red')   : $console->colorize('prior_green', 'dark'));
+        $line .= " " . ($above              ? $console->colorize('above', 'light_red')         : $console->colorize('above', 'dark'));
+        $line .= " " . ($red_candle         ? $console->colorize('red', 'light_red')           : $console->colorize('red', 'dark'));
+        $line .= ")";
+        echo "\n$line";
+        //*/
+
+        if (($prior_above && $prior_red_candle) && ($below && $green_candle)) {
+            /** SAR is below a NEW green candle. */
+            return 1; // buy signal
+        } elseif (($prior_below && $prior_green_candle) && ($above && $red_candle)) {
+            /** SAR is above a NEW red candle */
+            return -1; // sell signal
+        } else {
+            /** do nothing  */
+            return 0; // twiddle thumbs
+        }
+    }
+
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param int    $period
+     *
+     * @return int
+     *
+     *      Commodity Channel Index
+     */
+    public function cci($pair='ETH-USD', $data=null, $period=14)
+    {
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+
+        # array $high , array $low , array $close [, integer $timePeriod ]
+        $cci = trader_cci($data['high'], $data['low'], $data['close'], $period);
+        $cci = array_pop($cci); #[count($cci) - 1];
+
+        if ($cci > 100) {
+            return -1; // overbought
+        } elseif ($cci < -100) {
+            return 1;  // underbought
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param int    $period
+     *
+     * @return int
+     *
+     *      Chande Momentum Oscillator
+     */
+    public function cmo($pair='ETH-USD', $data=null, $period=14)
+    {
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+
+        $cmo = trader_cmo($data['close'], $period);
+        $cmo = array_pop($cmo); #[count($cmo) - 1];
+
+        if ($cmo > 50) {
+            return -1; // overbought
+        } elseif ($cmo < -50) {
+            return 1;  // underbought
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param int    $period
+     *
+     * @return int
+     *
+     *      Aroon Oscillator
+     */
+    public function aroonosc($pair='ETH-USD', $data=null, $period=14)
+    {
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+
+        $aroonosc = trader_aroonosc($data['high'], $data['low'], $period);
+        $aroonosc = array_pop($aroonosc); #[count($aroonosc) - 1];
+
+        if ($aroonosc < -50) {
+            return -1; // overbought
+        } elseif ($aroonosc > 50) {
+            return 1;  // underbought
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     * @param int    $period
+     *
+     * @return int
+     *
+     *          Average Directional Movement Index
+     *
+     *      TODO, this one needs more research for the returns
+     *      http://www.investopedia.com/terms/a/adx.asp
+     *
+     * The ADX calculates the potential strength of a trend.
+     * It fluctuates from 0 to 100, with readings below 20 indicating a weak trend and readings above 50 signaling a strong trend.
+     * ADX can be used as confirmation whether the pair could possibly continue in its current trend or not.
+     * ADX can also be used to determine when one should close a trade early. For instance, when ADX starts to slide below 50,
+     * it indicates that the current trend is possibly losing steam.
+     */
+    public function adx($pair='ETH-USD', $data=null, $period=14)
+    {
+        $util = new Util();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+
+        $adx = trader_adx($data['high'], $data['low'], $data['close'], $period);
+        $adx = array_pop($adx); #[count($adx) - 1];
+
+        if ($adx > 50) {
+            return -1; // overbought
+        } elseif ($adx < 20) {
+            return 1;  // underbought
+        } else {
+            return 0;
+        }
+    }
+
+
+
+    public function allSignals($pair='BTC/USD', $data=null)
+    {
+        $flags['adx']             = @$this->adx($pair, $data);
+        $flags['aroonosc']        = @$this->aroonosc($pair, $data);
+        $flags['cmo']             = @$this->cmo($pair, $data);
+        $flags['sar']             = @$this->sar($pair, $data);
+        $flags['cci']             = @$this->cci($pair, $data);
+        $flags['mfi']             = @$this->mfi($pair, $data);
+        $flags['obv']             = @$this->obv($pair, $data);
+        $flags['stoch']           = @$this->stoch($pair, $data);
+        $flags['stochf']          = @$this->stochf($pair, $data);
+        $flags['rsi']             = @$this->rsi($pair, $data);
+        $flags['macd']            = @$this->macd($pair, $data);
+        $flags['bollingerBands']  = @$this->bollingerBands($pair, $data);
+        $flags['atr']             = @$this->atr($pair, $data);
+        $flags['ao']              = @$this->awesome_oscillator($pair, $data);
+
+        $mas = ['sma','ema','wma','dema','trima','kama','mama']; // 't3','tema']' not working?
+        foreach ($mas as $ma) {
+            foreach ($mas as $ma2){
+                foreach ($mas as $ma3){
+                    $key = $ma.$ma2.$ma3;
+                    if ($ma == $ma2){
+                        $key = $ma.$ma2;
+                        if ($ma2 == $ma3){
+                            $key = $ma;
+                        }
+                    }
+                    $flags['ma'][$key] = $this->macdext($pair, $data, 12, $ma, 26, $ma2, 9, $ma3);
+                }
+            }
+        }
+
+        return $flags;
+    }
+
+
+
+
+    /** *************************************************************************** */
+    /**
+     *   PYTHON PRICE PREDICTION HERE..  PROBABLY DON"T USE
+     */
+    /**
+     * @param string $which
+     * @param string $pair
+     * @param null   $start
+     * @param null   $end
+     *
+     * @return float
+     *
+     *      prediction actually will attempt to predict an open or a close.
+     *      this is somewhat useful just to see if it works.
+     *
+     *      slower than built-in functions as it has to call out to python passing data through
+     *      redis.
+     */
+    public function prediction($which='close', $pair='ETH-USD', $start=null, $end=null) {
+        $a = \DB::table('historical')
+            ->select('*')
+            ->where('pair', $pair)
+            ->orderby('buckettime', 'DESC')
+            ->limit(24*7)
+            ->get();
+
+        $csv = "seq,id,curr,close,open,volume,zero\n";
+        foreach($a as $stuff) {
+            $_csv[] = "'".$stuff->buckettime ."',". $stuff->id .",'". $stuff->pair . "'," . (float)$stuff->close .','.(float)$stuff->open.','.(float)$stuff->volume.",0\n";
+        }
+        $__csv = array_reverse($_csv);
+        $ccsv = join ("", $__csv);
+        $csv .= trim($ccsv);
+        \Cache::put('tempbook',$csv,5); // we use redis to pass this to python
+
+        echo array_pop($__csv) . "\n";
+        $doing = base_path() . "/app/Scripts/$which"."_prediction.py";
+        $process = new Process("python -W ignore $doing");
+        $process->run();
+        // executes after the command finishes
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
+        $out = explode(',', $process->getOutput());
+        return round(array_pop($out),2);
+    }
+
+    // a function for comparing two float numbers
+    // float 1 - The first number
+    // float 2 - The number to compare against the first
+    // operator - The operator. Valid options are =, <=, <, >=, >, <>, eq, lt, lte, gt, gte, ne
+    public function compareFloatNumbers($float1, $float2, $operator='=')
+    {
+        // Check numbers to 5 digits of precision
+        $epsilon = 0.00001;
+
+        $float1 = (float)$float1;
+        $float2 = (float)$float2;
+
+        switch ($operator)
+        {
+            // equal
+            case "=":
+            case "eq":
+            {
+                if (abs($float1 - $float2) < $epsilon) {
+                    return true;
+                }
+                break;
+            }
+            // less than
+            case "<":
+            case "lt":
+            {
+                if (abs($float1 - $float2) < $epsilon) {
+                    return false;
+                }
+                else
+                {
+                    if ($float1 < $float2) {
+                        return true;
+                    }
+                }
+                break;
+            }
+            // less than or equal
+            case "<=":
+            case "lte":
+            {
+                if ($this->compareFloatNumbers($float1, $float2, '<') || $this->compareFloatNumbers($float1, $float2, '=')) {
+                    return true;
+                }
+                break;
+            }
+            // greater than
+            case ">":
+            case "gt":
+            {
+                if (abs($float1 - $float2) < $epsilon) {
+                    return false;
+                }
+                else
+                {
+                    if ($float1 > $float2) {
+                        return true;
+                    }
+                }
+                break;
+            }
+            // greater than or equal
+            case ">=":
+            case "gte":
+            {
+                if ($this->compareFloatNumbers($float1, $float2, '>') || $this->compareFloatNumbers($float1, $float2, '=')) {
+                    return true;
+                }
+                break;
+            }
+            case "<>":
+            case "!=":
+            case "ne":
+            {
+                if (abs($float1 - $float2) > $epsilon) {
+                    return true;
+                }
+                break;
+            }
+            default:
+            {
+                die("Unknown operator '".$operator."' in compareFloatNumbers()");
+            }
+        }
+
+        return false;
+    }
+}
