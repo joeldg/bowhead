@@ -1,5 +1,5 @@
 # bowhead
-Console PHP trading bot boilerplate/framework 
+a console PHP cryptocurrency trading bot boilerplate and framework 
 -
 Written by Joel De Gan, 2017
 
@@ -26,7 +26,7 @@ and on [1Broker](https://1broker.com/?r=21434), which you will need accounts on 
 
 I highly suggest you read through it and follow along to get it up and running.
 
-#### basica setup
+#### basic setup
 You will need 
 * PHP7.1
 * Redis
