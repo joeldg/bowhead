@@ -70,9 +70,14 @@ I am open to suggestions for how to get it to work on Windows
  - Console class, this is for colorizing, doing progress bars and doing text tables in console which look like the following.
 ````
  ╔═══════════════════════════════════════════════╗
- ║ BTC    │ 1QBhVZETNEyuJRgX6e8cJWBdCkq75bQ5o1   ║
- ║ DOGE   │ DEHjsyvHgDAQvAfwgPoHWjC3AVqAAp22eL   ║
+ ║ BTC    │                                      ║
+ ║ LTC    │                                      ║
  ╚════════╧══════════════════════════════════════╝
+````
+
+If you feel in a tipping mood send BTC to
+````
+14d9xxG1h5DkaDihiDBwzp5nj82dTcWfHc
 ````
 
 DONE:
