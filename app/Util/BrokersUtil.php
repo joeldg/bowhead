@@ -12,55 +12,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Class BrokersUtil - This is a lot of the coinbase stuff here.
+ * Class BrokersUtil - some extra utils
  * @package Bowhead\Util
  */
 class BrokersUtil
 {
-    protected $key;
-    protected $secret;
-    protected $passphrase;
-    protected $url; # https://api-public.sandbox.gdax.com or https://api.gdax.com
-
-    function __construct()
-    {
-        $this->key        = env('CBKEY');
-        $this->secret     = env('CBSECRET');
-        $this->passphrase = env('CBPASSPHRASE');
-        $this->url        = env('CBURL');
-    }
-
-    /**
-     * @var array
-     */
-    protected $endpoints = array(
-        'accounts'   => array('method' => 'GET', 'uri' => '/accounts'),
-        'account'    => array('method' => 'GET', 'uri' => '/accounts/%s'),
-        'ledger'     => array('method' => 'GET', 'uri' => '/accounts/%s/ledger'),
-        'holds'      => array('method' => 'GET', 'uri' => '/accounts/%s/holds'),
-        'place'      => array('method' => 'POST', 'uri' => '/orders'),
-        'cancel'     => array('method' => 'DELETE', 'uri' => '/orders/'),
-        'orders'     => array('method' => 'GET', 'uri' => '/orders'),
-        'order'      => array('method' => 'GET', 'uri' => '/orders/%s'),
-        'fills'      => array('method' => 'GET', 'uri' => '/fills'),
-        'products'   => array('method' => 'GET', 'uri' => '/products'),
-        'book'       => array('method' => 'GET', 'uri' => '/products/%s/book'), // ?level=2
-        'ticker'     => array('method' => 'GET', 'uri' => '/products/%s/ticker'),
-        'trades'     => array('method' => 'GET', 'uri' => '/products/%s/trades'),
-        'stats'      => array('method' => 'GET', 'uri' => '/products/%s/stats'),
-        'rates'      => array('method' => 'GET', 'uri' => '/products/%s/candles'),
-        'currencies' => array('method' => 'GET', 'uri' =>  '/currencies'),
-        'time'       => array('method' => 'GET', 'uri' => '/time'),
-        'position'   => array('method' => 'GET', 'uri' => '/position'),
-        'reports'    => array('method' => 'GET', 'uri' => '/reports'),
-        'coinbase-accounts' => array('method' => 'GET', 'uri' => '/coinbase-accounts'),
-    );
-
-    public function getCurr()
-    {
-        return 1;
-    }
-
     public function curlUrl($url)
     {
         $curl = curl_init();
@@ -89,6 +45,7 @@ class BrokersUtil
     /**
      * @return string
      * Generate a unique GUID
+     * probably don't use this.
      */
     public function guid(){
         if (function_exists('com_create_guid')){
@@ -109,6 +66,7 @@ class BrokersUtil
 
     /**
      * @return string
+     * we don't need this.. probably don't use.
      */
     public function generate_id() {
         return base_convert(time()+mt_rand(1,99), 10 , 36);
@@ -207,6 +165,13 @@ class BrokersUtil
         return $ret;
     }
 
+    /**
+     * @param $datas
+     *
+     * @return array
+     *
+     *  only useful if you pull historical from 1broker
+     */
     public function organizeOnebrokerData($datas)
     {
         $ret = array();
@@ -279,137 +244,11 @@ class BrokersUtil
     }
 
     /**
-     * @return mixed
-     * get both USD/BTC balances on coinbase
-     */
-    public function get_balances() {
-        $jsonReturn = $this->get_endpoint("accounts");
-        #error_log(print_r($jsonReturn,1));
-        foreach ($jsonReturn as $ret) {
-            $user[$ret['currency']]['id'] = $ret['id'];
-            $user[$ret['currency']]['balance'] = (float)$ret['balance'];
-            $user[$ret['currency']]['hold'] = (float)$ret['hold'];
-            $user[$ret['currency']]['available'] = (float)$ret['available'];
-            $user[$ret['currency']]['profile_id'] = $ret['profile_id'];
-        }
-        #error_log("Balances: USD:" . $user['USD']['balance'] . " BTC: ". $user['BTC']['balance'] . " hold: ". $user['BTC']['hold']);
-        return $user;
-    }
-
-    /**
-     * @param      $point
-     * @param null $data
-     * @param null $extra
-     *
-     * @return mixed
-     */
-    public function get_endpoint($point, $data=null, $extra=null, $instrument='ETH-USD', $method='GET') {
-        $timestamp  = time();
-        $key = $this->key;
-        $passphrase = $this->passphrase;
-
-        extract($this->endpoints[$point]); // provide method and uri
-        # TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        # TODO do sprintf on uri for instrument/product and other %s
-        #
-        $uri = sprintf($uri, $instrument);
-        #error_log('get_endpoint : '.$uri);
-        $uri = $uri . $extra;
-        $sig = $this->sign($timestamp, $method . $uri . $data, $this->secret, $instrument);
-
-        $headers = array(
-            'User-Agent: GDAX_cl_trader',
-            'Content-Type: application/json',
-            "CB-ACCESS-KEY: $key",
-            "CB-ACCESS-SIGN: $sig",
-            "CB-ACCESS-TIMESTAMP: $timestamp",
-            "CB-ACCESS-PASSPHRASE: $passphrase",
-        );
-        #error_log($uri);
-        #error_log(print_r($headers,1));
-        $apireturn = $this->call($point, $headers, $data, $extra, $instrument, $method);
-        return json_decode($apireturn['body'],1);
-    }
-
-
-
-    /**
-     * @param $timestamp
-     * @param $data
-     * @param $secret
-     *
-     * @return string
-     */
-    public function sign($timestamp, $data, $secret) {
-        return base64_encode(hash_hmac(
-            'sha256',
-            $timestamp . $data,
-            base64_decode($secret),
-            true
-        ));
-    }
-
-    /**
-     * @param        $endpoint
-     * @param        $headers
-     * @param string $body
-     * @param null   $extra
-     *
-     * @return array
-     */
-    public function call($endpoint, $headers, $body = '', $extra = null, $instrument='ETH-USD', $method='GET') {
-        extract($this->endpoints[$endpoint]);
-        $uri = sprintf($uri, $instrument);
-        #error_log('call : '.$uri);
-        $uri = $uri . $extra;
-        $url = $this->url . $uri;
-        #error_log($url);
-        #error_log($body);
-        $curl = curl_init();
-
-        $options = array(
-            CURLOPT_URL => $url,
-            CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_RETURNTRANSFER => true,
-        );
-
-        $method = strtolower($method);
-        if ($method == 'get') {
-            $options[CURLOPT_HTTPGET] = 1;
-        } else if ($method == 'post') {
-            $options[CURLOPT_POST] = 1;
-            $options[CURLOPT_POSTFIELDS] = $body;
-        } else if ($method == 'delete') {
-            $options[CURLOPT_CUSTOMREQUEST] = "DELETE";
-        } else if ($method == 'put') {
-            $options[CURLOPT_CUSTOMREQUEST] = "PUT";
-            $options[CURLOPT_POSTFIELDS] = $body;
-        }
-        #error_log(print_r($options,1));
-        curl_setopt_array($curl, $options);
-        $response = curl_exec($curl);
-        if ($response === false) {
-            $error = curl_errno($curl);
-            $message = curl_error($curl);
-            curl_close($curl);
-            #error_log('NETWORK ERROR', $message . " (" . $error . ")");
-        }
-
-        $statusCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
-
-        if($statusCode != 200) {
-            error_log('STATUS CODE', $statusCode . ' ' . $response);
-        }
-        return array( "statusCode" => $statusCode, "body" => $response );
-    }
-
-    /**
      * @param       $arr
      * @param float $LO
      * @param float $HI
      *
-     * @return mixed
+     * @return mixed  This is the Knuth version.
      */
     public function normalize($arr, $LO=0.01, $HI=0.99)
     {

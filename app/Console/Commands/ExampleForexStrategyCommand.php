@@ -8,6 +8,7 @@ use Bowhead\Util;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use AndreasGlaser\PPC\PPC; // https://github.com/andreas-glaser/poloniex-php-client
+use Dingo\Api\Facade\API;
 
 /**
  * Class ExampleForexCommand

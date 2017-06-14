@@ -9,6 +9,7 @@
 namespace Bowhead\Util;
 
 use Bowhead\Util\BrokersUtil;
+use Webpatser\Uuid;
 
 /**
  * Class Coinbase
@@ -19,16 +20,87 @@ use Bowhead\Util\BrokersUtil;
  */
 class Coinbase
 {
+    /**
+     * @var mixed
+     */
+    protected $key;
+
+    /**
+     * @var mixed
+     */
+    protected $secret;
+
+    /**
+     * @var mixed
+     */
+    protected $passphrase;
+
+    /**
+     * @var mixed
+     */
+    protected $url; # https://api-public.sandbox.gdax.com or https://api.gdax.com
+
+    /**
+     * @var array
+     */
+    protected $endpoints = array(
+        'accounts'   => array('method' => 'GET', 'uri' => '/accounts'),
+        'account'    => array('method' => 'GET', 'uri' => '/accounts/%s'),
+        'ledger'     => array('method' => 'GET', 'uri' => '/accounts/%s/ledger'),
+        'holds'      => array('method' => 'GET', 'uri' => '/accounts/%s/holds'),
+        'place'      => array('method' => 'POST', 'uri' => '/orders'),
+        'cancel'     => array('method' => 'DELETE', 'uri' => '/order/%s'),
+        'cancel_all' => array('method' => 'DELETE', 'uri' => '/orders/'),
+        'orders'     => array('method' => 'GET', 'uri' => '/orders'),
+        'order'      => array('method' => 'GET', 'uri' => '/orders/%s'),
+        'fills'      => array('method' => 'GET', 'uri' => '/fills'),
+        'products'   => array('method' => 'GET', 'uri' => '/products'),
+        'book'       => array('method' => 'GET', 'uri' => '/products/%s/book'), // ?level=2
+        'ticker'     => array('method' => 'GET', 'uri' => '/products/%s/ticker'),
+        'trades'     => array('method' => 'GET', 'uri' => '/products/%s/trades'),
+        'stats'      => array('method' => 'GET', 'uri' => '/products/%s/stats'),
+        'rates'      => array('method' => 'GET', 'uri' => '/products/%s/candles'),
+        'currencies' => array('method' => 'GET', 'uri' =>  '/currencies'),
+        'time'       => array('method' => 'GET', 'uri' => '/time'),
+        'position'   => array('method' => 'GET', 'uri' => '/position'),
+        'reports'    => array('method' => 'GET', 'uri' => '/reports'),
+        'coinbase-accounts' => array('method' => 'GET', 'uri' => '/coinbase-accounts'),
+    );
+
+    /**
+     * @var \Bowhead\Util\BrokersUtil
+     */
     protected $util;
 
     function __construct()
     {
-        $this->util = new BrokersUtil();
+        $this->key        = env('CBKEY');
+        $this->secret     = env('CBSECRET');
+        $this->passphrase = env('CBPASSPHRASE');
+        $this->url        = env('CBURL');
     }
 
     public function getAccount()
     {
-        return $this->util->get_endpoint('accounts');
+        return $this->get_endpoint('accounts');
+    }
+
+    /**
+     * @return mixed
+     * get both USD/BTC balances on coinbase
+     */
+    public function get_balances() {
+        $jsonReturn = $this->get_endpoint("accounts");
+        #error_log(print_r($jsonReturn,1));
+        foreach ($jsonReturn as $ret) {
+            $user[$ret['currency']]['id'] = $ret['id'];
+            $user[$ret['currency']]['balance'] = (float)$ret['balance'];
+            $user[$ret['currency']]['hold'] = (float)$ret['hold'];
+            $user[$ret['currency']]['available'] = (float)$ret['available'];
+            $user[$ret['currency']]['profile_id'] = $ret['profile_id'];
+        }
+        #error_log("Balances: USD:" . $user['USD']['balance'] . " BTC: ". $user['BTC']['balance'] . " hold: ". $user['BTC']['hold']);
+        return $user;
     }
 
     /**
@@ -37,7 +109,7 @@ class Coinbase
      */
     public function get_instruments()
     {
-        return $this->util->get_endpoint('products');
+        return $this->get_endpoint('products');
     }
 
     /**
@@ -180,7 +252,7 @@ class Coinbase
     public function cancel($order_id)
     {
         error_log('CANCEL '. $order_id);
-        return $this->util->get_endpoint('cancel', null, $order_id, 'DELETE');
+        return $this->get_endpoint('cancel', null, $order_id, 'DELETE');
     }
 
     /**
@@ -190,7 +262,7 @@ class Coinbase
      */
     function cancel_all_orders($side=null) {
         $ret = array();
-        $orders = $this->util->get_endpoint('orders');
+        $orders = $this->get_endpoint('orders');
         foreach ($orders as $order) {
             if (!empty($side) && $order['side'] != $side) {
                 continue;
@@ -206,7 +278,7 @@ class Coinbase
      */
     public function listorders()
     {
-        return $this->util->get_endpoint('orders');
+        return $this->get_endpoint('orders');
     }
 
     /**
@@ -270,7 +342,8 @@ class Coinbase
          */
 
         $rorder = null;
-        $guid = $this->util->guid(); // this needs to be marked in cache after the order
+        $uuid = Uuid\Uuid::generate(4);
+        $guid = trim($uuid); // trim mandatory
 
         // common to all order types
         $order = array(
@@ -310,7 +383,7 @@ class Coinbase
                 break;;
         }
 
-        $rorder = $this->util->get_endpoint('place', json_encode($order));
+        $rorder = $this->get_endpoint('place', json_encode($order));
         if ($rorder) {
             /**
              *  We need to set (internal guid <-> external guid) so we can do lookups in cache
@@ -323,5 +396,110 @@ class Coinbase
             error_log(strtoupper($data['side']) .' - '. "failed to purchase ". $data['size'] .' at '. $data['price']);
         }
         return $rorder;
+    }
+
+    /**
+     * @param      $point
+     * @param null $data
+     * @param null $extra
+     *
+     * @return mixed
+     */
+    public function get_endpoint($point, $data=null, $extra=null, $instrument='ETH-USD', $method='GET') {
+        $timestamp  = time();
+        $key = $this->key;
+        $passphrase = $this->passphrase;
+
+        extract($this->endpoints[$point]); // provide method and uri
+        # TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+        # TODO do sprintf on uri for instrument/product and other %s
+        #
+        $uri = sprintf($uri, $instrument);
+        #error_log('get_endpoint : '.$uri);
+        $uri = $uri . $extra;
+        $sig = $this->sign($timestamp, $method . $uri . $data, $this->secret);
+
+        $headers = array(
+            'User-Agent: GDAX_cl_trader',
+            'Content-Type: application/json',
+            "CB-ACCESS-KEY: $key",
+            "CB-ACCESS-SIGN: $sig",
+            "CB-ACCESS-TIMESTAMP: $timestamp",
+            "CB-ACCESS-PASSPHRASE: $passphrase",
+        );
+        #error_log($uri);
+        #error_log(print_r($headers,1));
+        $apireturn = $this->call($point, $headers, $data, $extra, $instrument, $method);
+        return json_decode($apireturn['body'],1);
+    }
+    /**
+     * @param $timestamp
+     * @param $data
+     * @param $secret
+     *
+     * @return string
+     */
+    public function sign($timestamp, $data, $secret) {
+        return base64_encode(hash_hmac(
+            'sha256',
+            $timestamp . $data,
+            base64_decode($secret),
+            true
+        ));
+    }
+
+    /**
+     * @param        $endpoint
+     * @param        $headers
+     * @param string $body
+     * @param null   $extra
+     *
+     * @return array
+     */
+    public function call($endpoint, $headers, $body = '', $extra = null, $instrument='ETH-USD', $method='GET') {
+        extract($this->endpoints[$endpoint]);
+        $uri = sprintf($uri, $instrument);
+        #error_log('call : '.$uri);
+        $uri = $uri . $extra;
+        $url = $this->url . $uri;
+        #error_log($url);
+        #error_log($body);
+        $curl = curl_init();
+
+        $options = array(
+            CURLOPT_URL => $url,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_RETURNTRANSFER => true,
+        );
+
+        $method = strtolower($method);
+        if ($method == 'get') {
+            $options[CURLOPT_HTTPGET] = 1;
+        } else if ($method == 'post') {
+            $options[CURLOPT_POST] = 1;
+            $options[CURLOPT_POSTFIELDS] = $body;
+        } else if ($method == 'delete') {
+            $options[CURLOPT_CUSTOMREQUEST] = "DELETE";
+        } else if ($method == 'put') {
+            $options[CURLOPT_CUSTOMREQUEST] = "PUT";
+            $options[CURLOPT_POSTFIELDS] = $body;
+        }
+        #error_log(print_r($options,1));
+        curl_setopt_array($curl, $options);
+        $response = curl_exec($curl);
+        if ($response === false) {
+            $error = curl_errno($curl);
+            $message = curl_error($curl);
+            curl_close($curl);
+            #error_log('NETWORK ERROR', $message . " (" . $error . ")");
+        }
+
+        $statusCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+
+        if($statusCode != 200) {
+            error_log('STATUS CODE', $statusCode . ' ' . $response);
+        }
+        return array( "statusCode" => $statusCode, "body" => $response );
     }
 }

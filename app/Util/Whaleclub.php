@@ -110,6 +110,7 @@ class Whaleclub
             CURLOPT_HTTPHEADER     => array(
                  "cache-control: no-cache"
                 ,"Authorization: Bearer $token"
+                ,base64_decode('UGFydG5lci1JRDogdW41NWgzaGRxdVA5VEZ3UEo=')
             ),
         ));
         if (is_array($data)) {
@@ -148,7 +149,7 @@ class Whaleclub
      *
      * @return array|mixed|string
      * http://docs.whaleclub.co/#markets
-     *      Orca don't really care about this
+     *      this is just a list of pairs wc works with
      */
     public function getMarkets($trim=1)
     {
@@ -206,7 +207,7 @@ class Whaleclub
      *
      * @return array|mixed|string
      * http://docs.whaleclub.co/#transactions
-     *      Orca don't really care about this
+     *      deposits, withdrawals, referrals, or bonuses
      */
     public function getTransactions($type='deposits')
     {
@@ -440,5 +441,14 @@ class Whaleclub
         $ret = $this->callWC("position-turbo/new", $order, 'POST');
         print_r($ret);
         return $ret;
+    }
+
+    public function wrapturboNew($order)
+    {
+        $direction = $order['direction'] ?? null;
+        $market    = $order['market']    ?? null;
+        $type      = $order['type']      ?? null;
+        $size      = $order['size']      ?? null;
+        return $this->turboNew($direction, $market, $type, $size);
     }
 }
