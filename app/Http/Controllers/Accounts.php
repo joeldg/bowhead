@@ -20,11 +20,14 @@ class Accounts extends Controller
      */
     protected $dataArray;
 
+    protected $broker_list;
+
     use Mapper;
 
     public function __construct(Request $request)
     {
         $this->dataArray = $request->all();
+        $this->broker_list = $this->mapped_brokers_list; // from Mapper...
     }
 
     function __debugInfo()
@@ -38,21 +41,29 @@ class Accounts extends Controller
         return array('test'=>1);
     }
 
+    /** retrieve orders and accounts */
     public function getAccountAction()
     {
+        $data = $this->dataArray;
+
         return [];
     }
 
+    /**
+     * place orders and such
+     */
     public function posttAccountAction()
     {
 
     }
 
+    /** modify orders */
     public function patchAccountAction()
     {
 
     }
 
+    /** close positions */
     public function deleteAccountAction()
     {
 

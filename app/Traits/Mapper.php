@@ -18,6 +18,8 @@ namespace Bowhead\Traits;
  */
 trait Mapper
 {
+    protected $mapped_brokers_list = ['whaleclub','oneboker','coinbase','bitfinex'];
+
     /**
      * @var array
      *   mappings *maps* [our base methods] => [brokerage class methods.]
@@ -29,7 +31,7 @@ trait Mapper
      *          if more than one variable needs to be passed, use a wrapper that accepts an array of values to
      *          map to the methods.
      */
-    protected $mappings = [
+    protected $api_mappings = [
 
         /** These are the brokerages we are starting with, adding more as we go */
         'apis'        => ['whaleclub','1broker','coinbase','bitfinex','poloniex','oanda']
@@ -69,7 +71,7 @@ trait Mapper
             , 'position_opts_open'       => 'wrapturboNew|[order]'
             , 'position_opts_contracts'  => 'turboContracts'
         ]
-        , '1broker'   => [
+        , 'onebroker'   => [
             /** account */
              'accounts_all'             => 'userDetailsGet'
 
@@ -119,12 +121,38 @@ trait Mapper
             , 'positions_closed'         => 'getPositionHistory'
 
             , 'position_get'             => ''
-            , 'position_open'            => ''
+            , 'position_open'            => 'place_order|[order]'
             , 'position_update'          => ''
-            , 'position_close'           => ''
-            , 'position_cancel'          => ''
+            , 'position_close'           => 'cancel|{id}'
+            , 'position_cancel'          => 'cancel|{id}'
         ]
-        , 'bitfinex'  => []
+        , 'bitfinex'  => [
+            /** account */
+            'accounts_all'             => 'fetch_balance'
+
+            , 'account_deposits'         => ''
+            , 'account_withdrawals'      => ''
+            , 'account_referrals'        => ''
+            , 'account_bonuses'          => ''
+
+            , 'account_deposit_address'  => ''
+
+            /** markets */
+            , 'markets_all'              => ''
+            , 'market_get'               => ''
+            , 'market_price'             => ''
+
+            /** positions */
+            , 'positions_active'         => 'positions'
+            , 'positions_pending'        => ''
+            , 'positions_closed'         => ''
+
+            , 'position_get'             => ''
+            , 'position_open'            => 'new_order_wrap|[order]'
+            , 'position_update'          => ''
+            , 'position_close'           => 'close_position|{id}'
+            , 'position_cancel'          => 'cancel_order|{id}'
+        ]
         , 'poloniex'  => []
         , 'oanda'     => []
     ];

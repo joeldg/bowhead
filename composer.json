@@ -16,6 +16,7 @@
         "php-ai/php-ml": "^0.4.1",
         "predis/predis": "^1.1",
         "ratchet/pawl": "^0.2.3",
+        "sentry/sentry-laravel": "^0.7.0",
         "tymon/jwt-auth": "^0.5.12",
         "webpatser/laravel-uuid": "^2.0"
     },

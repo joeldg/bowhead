@@ -25,6 +25,11 @@ class Bitfinex{
      $this->secret = $secret;
   }
 
+  public function new_order_wrap($order)
+  {
+      return $this->new_order($order['symbol'], $order['amt'], $order['price'], $order['side'], $order['type']);
+  }
+
    public function new_order($symbol, $amount, $price, $side, $type)
    {
       $request = "/v1/order/new";
