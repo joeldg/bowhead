@@ -41,7 +41,7 @@ RUN \
     echo "<?php phpinfo() ?>" > /var/www/html/healthcheck.php
 
 ADD . /var/www
-WORKDIR /var/www
+WORKDIR /root
 COPY resources/etc/ /etc/
 COPY resources/config_bowhead.sh /root/config_bowhead.sh
 
