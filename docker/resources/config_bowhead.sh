@@ -2,7 +2,7 @@
 
 #
 # install and configure bowhead
-# docker build -t bowhead docker/ && docker run -p 127.0.0.1:8080:8080 bowhead
+# docker build -t bowhead docker/ && docker run --name=bowhead -p 127.0.0.1:8080:8080 bowhead
 #
 
 phpenmod trader
@@ -55,8 +55,7 @@ echo "+----- Bowhead is now set up:                                       -----+
 echo "+----- you need to modify your /root/bowhead/.env                   -----+"
 echo "+-----                                                              -----+"
 echo "+----- SWAP TO A DIFFERENT TERMINAL TO CONNECT TO THIS INSTANCE     -----+"
-echo "+----- USE: 'docker ps' to see instance id (on the left)            -----+"
-echo "+----- USE: 'docker exec -it {id} /bin/bash to get terminal access  -----+"
+echo "+----- USE: 'docker exec -it bowhead /bin/bash' to get  access      -----+"
 echo "+-----                                                              -----+"
 echo "+-----  oanda streaming is going to 'Fatal' exit until              -----+"
 echo "+-----  you set your OANDA_TOKEN in .env                            -----+"
