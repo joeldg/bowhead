@@ -45,10 +45,10 @@ RUN \
     echo "<?php phpinfo() ?>" > /var/www/html/healthcheck.php
 
 ADD . /var/www
-WORKDIR /root
+WORKDIR /var/www
 
 COPY resources/etc/ /etc/
-COPY resources/config_bowhead.sh /root/config_bowhead.sh
+COPY resources/config_bowhead.sh /var/www/config_bowhead.sh
 
 RUN chmod +x /root/config_bowhead.sh
 
@@ -68,4 +68,4 @@ EXPOSE 20048
 # supervisord with nodaemon=true
 # it sits and waits and keeps docker going.
 #
-CMD ["/root/config_bowhead.sh"]
+CMD ["/var/www/config_bowhead.sh"]
