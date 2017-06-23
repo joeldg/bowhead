@@ -2,4 +2,4 @@ chmod 777 storage/logs
 chmod 777 bootstrap/cache
 
 docker cp ../bowhead/. bowhead:/var/www/bowhead
-
+docker exec -it bowhead supervisorctl restart all
