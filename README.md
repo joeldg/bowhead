@@ -1,5 +1,5 @@
 # bowhead
-a console PHP cryptocurrency trading bot boilerplate and framework 
+a REST-API and console-based cryptocurrency trading bot boilerplate and framework 
 -
 Written by Joel De Gan, 2017
 
@@ -7,7 +7,10 @@ Written by Joel De Gan, 2017
 Bowhead (a type of whale) is the codename for a boilerplate within Laravel for building 
 Cryptocurrency and Forex automated systems.
 
-It utilizes all the TALib functions implemented in the Trader extenstion for PHP
+Utilizing a RESTful API, Bowhead can be used as a middle-layer for your favorite language
+to interface with multiple brokerages and market makers, just add your API keys.
+
+Bowhead utilizes all the TALib functions implemented in the Trader extenstion for PHP
 and creates some of it's own indicators which are composites of those from TALib.
 
 #### Focus of the project.
@@ -87,6 +90,10 @@ DONE:
 4) Collect console functions into one Console class.
 5) Streaming data from Oanda
 6) Streaming data from Bitfinex
+7) Dockerfile easy-setup done and tested.
+
+IN PROGRESS:
+1) REST-API mappings, the base is there.
 
 TODO:
 1) Standardize the calls to brokerages so the method names are the same across all of them.
