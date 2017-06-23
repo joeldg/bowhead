@@ -2,6 +2,7 @@
 
 #
 # install and configure bowhead
+# docker build -t bowhead docker/ && docker run -p 127.0.0.1:8080:8080 bowhead
 #
 
 phpenmod trader
@@ -18,9 +19,14 @@ popd
 mysqladmin -u root password password
 echo "CREATE DATABASE bowhead;" | mysql -u root -ppassword
 
-cd ~
+cd /var/www
 git clone https://github.com/joeldg/bowhead.git
 cd bowhead
+
+# Laravel needs these to be writable
+chmod 777 storage/logs
+chmod 777 bootstrap/cache
+
 pip install python-env
 
 echo "-----------------------------------------------------------------"
@@ -34,10 +40,13 @@ ln -s /var/www/bowhead/public /var/www/html/bowhead
 mkfifo quotes
 mysql -u root -ppassword -D bowhead < app/Scripts/DBdump.sql
 
-php artisan bowhead:example_usage
+#php artisan bowhead:example_usage
 
 #/usr/bin/crontab /usr/src/crontab.tmp
 #/usr/sbin/service cron start
+
+echo "TESTING REST API via: http://127.0.0.1:8080/api/accounts"
+curl http://127.0.0.1:8080/api/accounts
 
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo "+----- READ ME:                                                     -----+"

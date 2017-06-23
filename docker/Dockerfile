@@ -50,7 +50,7 @@ WORKDIR /var/www
 COPY resources/etc/ /etc/
 COPY resources/config_bowhead.sh /var/www/config_bowhead.sh
 
-RUN chmod +x /root/config_bowhead.sh
+RUN chmod +x /var/www/config_bowhead.sh
 
 # if this container is used in AWS you will need these for ECS
 # you will also want the ports below
