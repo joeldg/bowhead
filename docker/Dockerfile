@@ -1,5 +1,9 @@
 #
-#
+# Bowhead Dockerfile.
+# use from the bowhead dir as
+# `docker built -t bowhead bowhead/
+# then `docker run bowhead` and read the output at the end.
+# using `docker ps` and `docker exec -it {id} /bin/bash` to connect
 #
 
 FROM thatsamguy/trusty-php71
@@ -31,33 +35,37 @@ RUN { \
 RUN pecl channel-update pecl.php.net
 RUN pecl install trader
 
-#install phpUnit & composer and add a healthcheck
+#install phpUnit & composer and add a healthcheck we can use in AWS
 RUN \
     wget "https://phar.phpunit.de/phpunit.phar" && \
     chmod +x phpunit.phar && \
     mv phpunit.phar /usr/local/bin/phpunit && \
-        curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
     dpkg-reconfigure --priority=low unattended-upgrades && \
     echo "<?php phpinfo() ?>" > /var/www/html/healthcheck.php
 
 ADD . /var/www
 WORKDIR /root
+
 COPY resources/etc/ /etc/
 COPY resources/config_bowhead.sh /root/config_bowhead.sh
 
 RUN chmod +x /root/config_bowhead.sh
 
 # if this container is used in AWS you will need these for ECS
-# you will also need the ports below
+# you will also want the ports below
 RUN \
     pip install awscli && \
     aws configure set preview.efs true
 
 RUN usermod -u 1000 www-data
 
-EXPOSE 80
+EXPOSE 8080
 EXPOSE 2049
 EXPOSE 20048
 
-
+#
+# supervisord with nodaemon=true
+# it sits and waits and keeps docker going.
+#
 CMD ["/root/config_bowhead.sh"]
