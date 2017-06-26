@@ -7,6 +7,12 @@
  */
 
 namespace Bowhead\Traits;
+
+use Bowhead\Util\Whaleclub;
+use Bowhead\Util\Coinbase;
+use Bowhead\Util\Bitfinex;
+use Bowhead\Util\OneBroker;
+
 /**
  * Class Mapper
  * @package Bowhead\Traits
@@ -18,7 +24,7 @@ namespace Bowhead\Traits;
  */
 trait Mapper
 {
-    protected $mapped_brokers_list = ['whaleclub','oneboker','coinbase','bitfinex'];
+    protected $mapped_brokers_list = ['whaleclub','OneBroker','Coinbase','Bitfinex'];
 
     /**
      * @var array
@@ -34,10 +40,10 @@ trait Mapper
     protected $api_mappings = [
 
         /** These are the brokerages we are starting with, adding more as we go */
-        'apis'        => ['whaleclub','1broker','coinbase','bitfinex','poloniex','oanda']
+        'apis'        => ['Whaleclub','OneBroker','Coinbase','Bitfinex','poloniex','oanda']
 
         /** mappings */
-        , 'whaleclub' => [
+        , 'Whaleclub' => [
             /** account */
               'accounts_all'             => 'getBalance'
 
@@ -71,7 +77,7 @@ trait Mapper
             , 'position_opts_open'       => 'wrapturboNew|[order]'
             , 'position_opts_contracts'  => 'turboContracts'
         ]
-        , 'onebroker'   => [
+        , 'OneBroker'   => [
             /** account */
              'accounts_all'             => 'userDetailsGet'
 
@@ -99,7 +105,7 @@ trait Mapper
             , 'position_cancel'          => 'cancelOrder|{id}'
 
         ]
-        , 'coinbase'  => [
+        , 'Coinbase'  => [
             /** account */
             'accounts_all'             => 'getAccount'
 
@@ -126,7 +132,7 @@ trait Mapper
             , 'position_close'           => 'cancel|{id}'
             , 'position_cancel'          => 'cancel|{id}'
         ]
-        , 'bitfinex'  => [
+        , 'Bitfinex'  => [
             /** account */
             'accounts_all'             => 'fetch_balance'
 
@@ -157,8 +163,51 @@ trait Mapper
         , 'oanda'     => []
     ];
 
-    public function mapperAccounts()
+    /**
+     * @param $source
+     * @param $data
+     *
+     * @return mixed
+     *
+     *  USE THE ABOVE MAPPINGS AND CALL THE CLASS WITH THE APPROPRIATE FUNCTION.
+     */
+    public function mapperAccounts($source, $data)
     {
-        //
+       switch ($source) {
+           case 'Whateclub':
+               $instance = new Whaleclub('BTC/USD');
+               break;
+           case 'OneBroker':
+               $instance = new OneBroker();
+               break;
+           case 'Coinbase':
+               $instance = new Coinbase();
+               break;
+           case 'Bitfinex':
+               $instance = new Bitfinex(env('BITFINIX_KEY'), env('BITFINIX_SECRET'));
+               break;
+           default:
+               $instance = new Whaleclub('BTC/USD');
+               break;
+       }
+
+        $map = $this->api_mappings[$source]; // grab mappings for this class
+        $action = $map[$data['action']];     // grab the current mapping
+
+        // process the mapping
+        if (strpos($action, '|')) {
+            $parts = explode('|', $action);
+            // id passed
+            if ($parts[1] == "{id}") {
+                return call_user_func_array(array($instance, $parts[0]), array($data['id']));
+            }
+            // array passed
+            if ($parts[1] == '[order]') {
+                return call_user_func_array(array($instance, $parts[0]), array($data['order']));
+            }
+        } else {
+            // plain call
+            return call_user_func_array(array($instance, $action), array());
+        }
     }
 }

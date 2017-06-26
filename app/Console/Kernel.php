@@ -20,6 +20,9 @@ class Kernel extends ConsoleKernel
         Commands\ExampleUsageCommand::class,
         Commands\ExampleCommand::class,
         Commands\ExampleForexStrategyCommand::class,
+        Commands\BitfinexWebsocketETHCommand::class,
+        Commands\WebsocketCoinbaseTestCommand::class,
+        Commands\SignalsExampleCommand::class,
     ];
 
     /**

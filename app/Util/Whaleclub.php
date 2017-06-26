@@ -61,7 +61,7 @@ class Whaleclub
      *
      * @param $instrument
      */
-    function __construct($instrument)
+    function __construct($instrument='BTC/USD')
     {
         $this->token = env('WHALECLUB_TOKEN');
         $this->instrument = $instrument;

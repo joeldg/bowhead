@@ -47,7 +47,7 @@ class Indicators
      *      array with the available types of buy/sell signals
      *      'aroonosc','cmo','cci','mfi' = a good group with volume
      */
-    public $available_signals = array('adx','aroonosc','cmo','sar','cci','mfi','obv','stoch','rsi','macd','bollingerBands','atr');
+    public $available_signals = array('adx','aroonosc','cmo','sar','cci','mfi','obv','stoch','rsi','macd','bollingerBands','atr','er','hli','ultosc','willr','roc','stochrsi');
 
     /**
      * @param $ma
@@ -201,7 +201,7 @@ class Indicators
      * One way to use MACD is to wait for the fast line to “cross over” or “cross under” the slow line and
      * enter the trade accordingly because it signals a new trend.
      */
-    public function macd($pair='BTC/USD', $data=null, $period=10)
+    public function macd($pair='BTC/USD', $data=null, $period1=12, $period2=26, $period3=9)
     {
         $util = new BrokersUtil();
         if (empty($data)) {
@@ -213,7 +213,7 @@ class Indicators
         #  data, fast period, slow period, signal period (2-100000)
 
         # array $real [, integer $fastPeriod [, integer $slowPeriod [, integer $signalPeriod ]]]
-        $macd = trader_macd($data['close'], 12, 26, 9);
+        $macd = trader_macd($data['close'], $period1, $period2, $period3);
         $macd_raw = $macd[0];
         $signal   = $macd[1];
         $hist     = $macd[2];
@@ -309,7 +309,7 @@ class Indicators
         #$prev_close = array_pop($data2['close']); #$data['close'][count($data['close']) - 2]; // prior close
 
         $rsi = trader_rsi ($data['close'], $period);
-        $rsi = array_pop($rsi); #$rsi[count($rsi)-1]; // pick off the last
+        $rsi = array_pop($rsi);
 
         # RSI is above 70 and we own, sell
         if ($rsi > $HIGH_RSI) {
@@ -419,6 +419,8 @@ class Indicators
 
 
     /**
+     * NO specific TALib function
+     *
      * @param string $pair
      * @param null   $data
      * @param bool   $return_raw
@@ -528,9 +530,9 @@ class Indicators
          *   TODO: this needs to be tested more, we might need to look closer for crypto currencies
          */
         if (($current_obv > $prior_obv) && ($prior_obv > $earlier_obv)) {
-            return 1;
+            return 1; // upwards momentum
         } elseif (($current_obv < $prior_obv) && ($prior_obv < $earlier_obv)) {
-            return -1;
+            return -1; // downwards momentum
         } else {
             return 0;
         }
@@ -802,8 +804,233 @@ class Indicators
         }
     }
 
+    /**
+     *  Stochastic - relative strength index
+     *  above .80 is considered overbought
+     *  below .20 is considered oversold
+     *  uptrend when consistently above .50
+     *  downtrend when consistently below .50
+     */
+    public function stochrsi($pair='BTC/USD', $data=null, $period=14, $trend=false, $trend_period=5)
+    {
+        // trader_stochrsi ( array $real [, integer $timePeriod [, integer $fastK_Period [, integer $fastD_Period [, integer $fastD_MAType ]]]] )
+        $util = new BrokersUtil();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+        $stochrsi_trend = $stochrsi = trader_stochrsi($data['close'], $period);
+        $stochrsi = array_pop($stochrsi);
+
+        /**
+         *  Lets determine if there is a trend over period 5
+         */
+        if ($trend) {
+            $trending = 0;
+            $parts = [];
+            for($a=0; $a<$trend_period; $a++) {
+                $parts[] = array_pop($stochrsi_trend);
+            }
+            foreach ($parts as $part) {
+                $trending += ($part >= 0.5 ? 1 : -1);
+            }
+            if ($trending == 5){
+                return 1;
+            }
+            if ($trending == -5){
+                return -1;
+            }
+            return 0;
+        /**
+         *  or, just see if we have overbought/oversold
+         */
+        } else {
+            if ($stochrsi < 0.2) {
+                return 1; // oversold
+            } elseif ($stochrsi > 0.8) {
+                return -1; // overbought
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    /**
+     * Price Rate of Change
+     * ROC = [(Close - Close n periods ago) / (Close n periods ago)] * 100
+     * Positive values that are greater than 30 are generally interpreted as indicating overbought conditions,
+     * while negative values lower than negative 30 indicate oversold conditions.
+     */
+    public function roc($pair='BTC/USD', $data=null, $period=14)
+    {
+        // trader_roc ( array $real [, integer $timePeriod ] )
+        $util = new BrokersUtil();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+        $roc = trader_roc($data['close'], $period);
+        $roc = array_pop($roc);
+        if ($roc < -30) {
+            return 1; // oversold
+        } elseif ($roc > 30) {
+            return -1; // overbought
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     *  Williams R%
+     *  %R = (Highest High – Closing Price) / (Highest High – Lowest Low) x -100
+     *  When the indicator produces readings from 0 to -20, this indicates overbought market conditions.
+     *  When readings are -80 to -100, it indicates oversold market conditions.
+     */
+    public function willr($pair='BTC/USD', $data=null, $period=14)
+    {
+        $util = new BrokersUtil();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+        $willr = trader_willr($data['high'], $data['low'], $data['close'], $period);
+        $willr = array_pop($willr);
+        if ($willr <= -80) {
+            return 1; // oversold
+        } elseif ($willr >= -20) {
+            return -1; // overbought
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * ULTIMATE OSCILLATOR
+     *
+     * BP = Close - Minimum(Low or Prior Close).
+     * TR = Maximum(High or Prior Close)  -  Minimum(Low or Prior Close)
+     *
+     * Average7 = (7-period BP Sum) / (7-period TR Sum)
+     * Average14 = (14-period BP Sum) / (14-period TR Sum)
+     * Average28 = (28-period BP Sum) / (28-period TR Sum)
+     *
+     * UO = 100 x [(4 x Average7)+(2 x Average14)+Average28]/(4+2+1)
+     *
+     *  levels below 30 are deemed to be oversold
+     *  levels above 70 are deemed to be overbought.
+     */
+    public function ultosc($pair='BTC/USD', $data=null, $period1=7, $period2=14, $period3=28)
+    {
+        //trader_ultosc ( array $high , array $low , array $close [, integer $timePeriod1 [, integer $timePeriod2 [, integer $timePeriod3 ]]] )
+        $util = new BrokersUtil();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+        $ultosc = trader_ultosc($data['high'], $data['low'], $data['close'], $period1, $period2, $period3);
+        $ultosc = array_pop($ultosc);
+        if ($ultosc <= 30) {
+            return 1; // oversold
+        } elseif ($ultosc >= 70) {
+            return -1; // overbought
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * NO TALib function
+     *
+     *   High-Low index
+     * Record High Percent = {New Highs / (New Highs + New Lows)} x 100
+     * High-Low Index = 10-day SMA of Record High Percent
+     *
+     * Readings consistently above 70 usually coincide with a strong uptrend.
+     * Readings consistently below 30 usually coincide with a strong downtrend.
+     */
+    public function hli($pair='BTC/USD', $data=null, $period=28)
+    {
+        $util = new BrokersUtil();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+        if (count($data['high'])<$period) {
+            return 0;
+        }
+        $rhp = [];
+        $total = count($data['high']);
+        for($a=0; $a<$total; $a++) {
+            $slices_high = array_slice($data['high'], $a, $period);
+            $slices_low  = array_slice($data['low'], $a, $period);
+            $high = $total_highs = 0;
+            foreach($slices_high as $slice) {
+                $total_highs += ($slice > $high ? 1 : 0); // incr if new high
+                $high = ($slice > $high ? $slice : $high); // set new high?
+            }
+            $low = $total_lows = 0;
+            foreach($slices_low as $slice) {
+                $total_lows += ($slice < $low ? 1 : 0); // incr if new low
+                $low = ($slice < $low ? $slice : $low); // set new low
+            }
+            // Record High Percent
+            $rhp[] = (($total_highs / ($total_highs + $total_lows))*100);
+        }
+        $hli = trader_sma($rhp, 10);
+        $hli = array_pop($hli);
+
+        if ($hli > 70) {
+            return 1; // bullish
+        } elseif ($hli < 30) {
+            return -1; // bearish
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * NO TALib specific function
+     *
+     *  Elder ray - Bull/Bear power
+     * Elder uses a 13-day exponential moving average (EMA) to indicate the consensus market value.
+     * Bull Power is calculated by subtracting the 13-day EMA from the day’s high.
+     * Bear Power is derived by subtracting the 13-day EMA from the day’s low.
+     */
+    public function er($pair='BTC/USD', $data=null)
+    {
+        $util = new BrokersUtil();
+        if (empty($data)) {
+            $data = $util->getRecentData($pair);
+        }
+        $highs = $data['high'];
+        $lows  = $data['low'];
+        $highs_current = array_pop($highs);
+        $lows_current  = array_pop($lows);
+
+        $macd = trader_macd($data['close'], 12, 26, 9);
+        $macd_raw = $macd[0];
+        $signal   = $macd[1];
+        #$hist     = $macd[2];
+        $macd_current  = (array_pop($macd_raw) - array_pop($signal));
+
+        $ema  = trader_ema($data['close'], 13);
+        $ema_current  = array_pop($ema);
+        $bull_current = $ema_current - array_pop($data['high']);
+        $bear_current = $ema_current - array_pop($data['low']);
+
+        if ($bull_current > 0 && $highs_current > $macd_current) {
+            return 1;
+        } elseif($bear_current < 0 && $lows_current < $macd_current) {
+            return -1;
+        } else {
+            return 0;
+        }
 
 
+    }
+
+
+    /**
+     * @param string $pair
+     * @param null   $data
+     *
+     * @return mixed
+     */
     public function allSignals($pair='BTC/USD', $data=null)
     {
         $flags['adx']             = @$this->adx($pair, $data);
@@ -820,6 +1047,12 @@ class Indicators
         $flags['bollingerBands']  = @$this->bollingerBands($pair, $data);
         $flags['atr']             = @$this->atr($pair, $data);
         $flags['ao']              = @$this->awesome_oscillator($pair, $data);
+        $flags['er']              = @$this->er($pair, $data);
+        $flags['hli']             = @$this->hli($pair, $data);
+        $flags['ultosc']          = @$this->ultosc($pair, $data);
+        $flags['willr']           = @$this->willr($pair, $data);
+        $flags['roc']             = @$this->roc($pair, $data);
+        $flags['stochrsi']        = @$this->stochrsi($pair, $data);
 
         $mas = ['sma','ema','wma','dema','trima','kama','mama']; // 't3','tema']' not working?
         foreach ($mas as $ma) {

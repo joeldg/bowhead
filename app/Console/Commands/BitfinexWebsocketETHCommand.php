@@ -6,14 +6,14 @@ use Bowhead\Util\Console;
 use Illuminate\Console\Command;
 use Bowhead\Util;
 
-class BitfinexWebsocketCommand extends Command
+class BitfinexWebsocketETHCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'bowhead:websocket_bitfinex';
+    protected $signature = 'bowhead:websocket_bitfinex_eth';
 
     /**
      * The console command description.
@@ -143,7 +143,7 @@ class BitfinexWebsocketCommand extends Command
             INSERT INTO bowhead_ohlc 
             (`instrument`, `timeid`, `open`, `high`, `low`, `close`, `volume`)
             VALUES
-            ('BTC/USD', $timeid, $last_price, $last_price, $last_price, $last_price, $volume)
+            ('ETH/USD', $timeid, $last_price, $last_price, $last_price, $last_price, $volume)
             ON DUPLICATE KEY UPDATE 
             `high`   = CASE WHEN `high` < VALUES(`high`) THEN VALUES(`high`) ELSE `high` END,
             `low`    = CASE WHEN `low` > VALUES(`low`) THEN VALUES(`low`) ELSE `low` END,
@@ -201,7 +201,7 @@ class BitfinexWebsocketCommand extends Command
          *  YOU CANNOT DO MULTIPLE SYMBOLS HERE.
          *  THEY DON'T COME IN TAGGED.
          */
-        $this->instruments = ['BTCUSD'];
+        $this->instruments = ['ETHUSD'];
         $loop = \React\EventLoop\Factory::create();
         $connector = new \Ratchet\Client\Connector($loop);
 
