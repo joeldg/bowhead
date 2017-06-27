@@ -2,12 +2,14 @@
 
 namespace Bowhead\Console\Commands;
 
+use Bowhead\Traits\OHLC;
 use Bowhead\Util\Console;
 use Illuminate\Console\Command;
 use Bowhead\Util;
 
 class BitfinexWebsocketETHCommand extends Command
 {
+    use OHLC;
     /**
      * The name and signature of the console command.
      *
@@ -127,30 +129,6 @@ class BitfinexWebsocketETHCommand extends Command
         ];
         \Cache::put('bitfinex::main', $ret, 5);
         return $ret;
-    }
-
-    /**
-     * @param $ticker
-     *
-     * @return bool
-     */
-    public function markOHLC($ticker)
-    {
-        $last_price = $ticker[7];
-        $volume = $ticker[8];
-        $timeid = date('YmdHi'); // 201705301522 unique for date
-        $ins = \DB::insert("
-            INSERT INTO bowhead_ohlc 
-            (`instrument`, `timeid`, `open`, `high`, `low`, `close`, `volume`)
-            VALUES
-            ('ETH/USD', $timeid, $last_price, $last_price, $last_price, $last_price, $volume)
-            ON DUPLICATE KEY UPDATE 
-            `high`   = CASE WHEN `high` < VALUES(`high`) THEN VALUES(`high`) ELSE `high` END,
-            `low`    = CASE WHEN `low` > VALUES(`low`) THEN VALUES(`low`) ELSE `low` END,
-            `volume` = VALUES(`volume`),
-            `close`  = VALUES(`close`)
-        ");
-        return true;
     }
 
     /**
@@ -334,7 +312,7 @@ class BitfinexWebsocketETHCommand extends Command
 
                             $this->manageCacheArray('bitfinex::ticker::last_price_diff::array', ($data[7]-$last));
                             #print_r($data);
-                            $this->markOHLC($data);
+                            $this->markOHLC($data, 1, 'ETH/USD');
                         }
 
                         /** -------------- TRADE -------------- */

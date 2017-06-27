@@ -167,13 +167,14 @@ class Whaleclub
      * [state] => open
      * [last_updated] => 1495838365
      */
-    public function getPrice($trim=1)
+    public function getPrice($instrument, $trim=1)
     {
-        $ret = $this->callWC("price/".$this->instrument);
-        $ask = $ret[$this->instrument]['ask'] ?? 0;
-        $bid = $ret[$this->instrument]['bid'] ?? 0;
-        $ret[$this->instrument]['spread'] =  $ask-$bid;
-        return $trim ? $ret[$this->instrument] : $ret;
+        $ret = $this->callWC("price/".$instrument);
+        $ask = $ret[$instrument]['ask'] ?? 0;
+        $bid = $ret[$instrument]['bid'] ?? 0;
+        $ret[$instrument]['price'] =  ($ask+$bid)/2;
+        $ret[$instrument]['spread'] =  $ask-$bid;
+        return $trim ? $ret[$instrument] : $ret;
     }
 
     /**

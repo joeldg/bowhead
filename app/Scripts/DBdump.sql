@@ -23,9 +23,9 @@
 # Dump of table bowhead_ohlc
 # ------------------------------------------------------------
 
-DROP TABLE IF EXISTS `bowhead_ohlc`;
+DROP TABLE IF EXISTS `bowhead_ohlc_1m`;
 
-CREATE TABLE `bowhead_ohlc` (
+CREATE TABLE `bowhead_ohlc_1m` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `instrument` varchar(10) DEFAULT NULL,
   `ctime` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -40,10 +40,10 @@ CREATE TABLE `bowhead_ohlc` (
   KEY `ctime` (`ctime`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-LOCK TABLES `bowhead_ohlc` WRITE;
-/*!40000 ALTER TABLE `bowhead_ohlc` DISABLE KEYS */;
+LOCK TABLES `bowhead_ohlc_1m` WRITE;
+/*!40000 ALTER TABLE `bowhead_ohlc_1m` DISABLE KEYS */;
 
-INSERT INTO `bowhead_ohlc` (`id`, `instrument`, `ctime`, `timeid`, `open`, `high`, `low`, `close`, `volume`)
+INSERT INTO `bowhead_ohlc_1m` (`id`, `instrument`, `ctime`, `timeid`, `open`, `high`, `low`, `close`, `volume`)
 VALUES
 	(914688,'BTC/USD','2017-06-07 02:34:31',201706061934,2831.3,2832.9,2831.3,2832.9,36910),
 	(914821,'BTC/USD','2017-06-07 02:35:04',201706061935,2832.2,2832.8,2832.2,2832.8,36721),
@@ -246,15 +246,106 @@ VALUES
 	(938830,'BTC/USD','2017-06-07 05:52:07',201706062252,2839.7,2839.7,2839.7,2839.7,29128),
 	(938939,'BTC/USD','2017-06-07 05:53:03',201706062253,2839.7,2840.6,2839.7,2840.6,29103);
 
-/*!40000 ALTER TABLE `bowhead_ohlc` ENABLE KEYS */;
+/*!40000 ALTER TABLE `bowhead_ohlc_1m` ENABLE KEYS */;
 UNLOCK TABLES;
 
+-- Create syntax for TABLE 'bowhead_ohlc'
+CREATE TABLE `bowhead_ohlc` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `instrument` varchar(10) DEFAULT NULL,
+  `ctime` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `timeid` bigint(28) DEFAULT NULL,
+  `open` float DEFAULT NULL,
+  `high` float DEFAULT NULL,
+  `low` float DEFAULT NULL,
+  `close` float DEFAULT NULL,
+  `volume` int(18) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `instrument` (`instrument`,`timeid`),
+  KEY `ctime` (`ctime`)
+) ENGINE=InnoDB AUTO_INCREMENT=998011 DEFAULT CHARSET=utf8;
 
-# Dump of table historical
-# ------------------------------------------------------------
+-- Create syntax for TABLE 'bowhead_ohlc_15m'
+CREATE TABLE `bowhead_ohlc_15m` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `instrument` varchar(10) DEFAULT NULL,
+  `ctime` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `timeid` bigint(28) DEFAULT NULL,
+  `open` float DEFAULT NULL,
+  `high` float DEFAULT NULL,
+  `low` float DEFAULT NULL,
+  `close` float DEFAULT NULL,
+  `volume` int(18) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `instrument` (`instrument`,`timeid`),
+  KEY `ctime` (`ctime`)
+) ENGINE=InnoDB AUTO_INCREMENT=78080 DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS `historical`;
+-- Create syntax for TABLE 'bowhead_ohlc_1h'
+CREATE TABLE `bowhead_ohlc_1h` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `instrument` varchar(10) DEFAULT NULL,
+  `ctime` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `timeid` bigint(28) DEFAULT NULL,
+  `open` float DEFAULT NULL,
+  `high` float DEFAULT NULL,
+  `low` float DEFAULT NULL,
+  `close` float DEFAULT NULL,
+  `volume` int(18) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `instrument` (`instrument`,`timeid`),
+  KEY `ctime` (`ctime`)
+) ENGINE=InnoDB AUTO_INCREMENT=78080 DEFAULT CHARSET=utf8;
 
+-- Create syntax for TABLE 'bowhead_ohlc_30m'
+CREATE TABLE `bowhead_ohlc_30m` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `instrument` varchar(10) DEFAULT NULL,
+  `ctime` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `timeid` bigint(28) DEFAULT NULL,
+  `open` float DEFAULT NULL,
+  `high` float DEFAULT NULL,
+  `low` float DEFAULT NULL,
+  `close` float DEFAULT NULL,
+  `volume` int(18) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `instrument` (`instrument`,`timeid`),
+  KEY `ctime` (`ctime`)
+) ENGINE=InnoDB AUTO_INCREMENT=78080 DEFAULT CHARSET=utf8;
+
+-- Create syntax for TABLE 'bowhead_ohlc_5m'
+CREATE TABLE `bowhead_ohlc_5m` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `instrument` varchar(10) DEFAULT NULL,
+  `ctime` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `timeid` bigint(28) DEFAULT NULL,
+  `open` float DEFAULT NULL,
+  `high` float DEFAULT NULL,
+  `low` float DEFAULT NULL,
+  `close` float DEFAULT NULL,
+  `volume` int(18) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `instrument` (`instrument`,`timeid`),
+  KEY `ctime` (`ctime`)
+) ENGINE=InnoDB AUTO_INCREMENT=78080 DEFAULT CHARSET=utf8;
+
+-- Create syntax for TABLE 'bowhead_strategy'
+CREATE TABLE `bowhead_strategy` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `ctime` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `position_id` varchar(68) DEFAULT NULL,
+  `pair` varchar(25) DEFAULT NULL,
+  `direction` varchar(5) DEFAULT NULL,
+  `profit` bigint(22) DEFAULT NULL,
+  `strategy` varchar(30) DEFAULT NULL,
+  `signalpos` int(11) DEFAULT NULL,
+  `signalneg` int(11) DEFAULT NULL,
+  `close_reason` varchar(20) DEFAULT NULL,
+  `state` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8;
+
+-- Create syntax for TABLE 'historical'
 CREATE TABLE `historical` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `pair` varchar(7) DEFAULT NULL,
@@ -271,13 +362,7 @@ CREATE TABLE `historical` (
   KEY `volume` (`volume`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
-
-# Dump of table symbols
-# ------------------------------------------------------------
-
-DROP TABLE IF EXISTS `symbols`;
-
+-- Create syntax for TABLE 'symbols'
 CREATE TABLE `symbols` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `symbol` varchar(10) DEFAULT NULL,
@@ -298,14 +383,4 @@ CREATE TABLE `symbols` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `symbol` (`symbol`),
   KEY `category` (`category`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+) ENGINE=InnoDB AUTO_INCREMENT=56 DEFAULT CHARSET=utf8;

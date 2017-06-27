@@ -3,6 +3,7 @@
 namespace Bowhead\Console\Commands;
 
 use AndreasGlaser\PPC\PPC;
+use Bowhead\Traits\OHLC;
 use Bowhead\Util\Whaleclub;
 use Bowhead\Util\Bitfinex;
 use Bowhead\Util\Candles;

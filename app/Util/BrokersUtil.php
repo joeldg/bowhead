@@ -141,7 +141,7 @@ class BrokersUtil
      *
      *      used by getRecentData
      */
-    public function organizePairData($datas)
+    public function zorganizePairData($datas)
     {
         $ret['date']   = [];
         $ret['low']    = [];
@@ -195,7 +195,7 @@ class BrokersUtil
      *
      * @return array
      */
-    public function getRecentData($pair='BTC/USD', $limit=168, $day_data=false, $hour=12, $returnRS=false)
+    public function zgetRecentData($pair='BTC/USD', $limit=168, $day_data=false, $hour=12, $returnRS=false)
     {
         /**
          *  we need to cache this as many strategies will be

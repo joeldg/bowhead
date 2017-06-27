@@ -3,18 +3,21 @@
 namespace Bowhead\Console\Commands;
 
 use Bowhead\Console\Kernel;
+use Bowhead\Traits\OHLC;
 use Illuminate\Console\Command;
 use Bowhead\Util;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use AndreasGlaser\PPC\PPC; // https://github.com/andreas-glaser/poloniex-php-client
-use Dingo\Api\Facade\API;
+
 
 /**
  * Class ExampleForexCommand
  * @package Bowhead\Console\Commands
  */
-class ExampleForexStrategyCommand extends Command {
+class ExampleForexStrategyCommand extends Command
+{
+    use OHLC;
 
     /**
      * The console command name.
@@ -95,8 +98,8 @@ class ExampleForexStrategyCommand extends Command {
         $instruments = ['USD_JPY','NZD_USD','EUR_GBP','USD_CAD','USD_CNH','USD_MXN','USD_TRY','AUD_USD','EUR_USD','USD_CHF'];
         $util        = new Util\BrokersUtil();
         $wc          = new Util\Whaleclub($this->instrument);
-        $console     = new \Bowhead\Util\Console();
-        $indicators  = new \Bowhead\Util\Indicators();
+        $console     = new Util\Console();
+        $indicators  = new Util\Indicators();
 
         $this->wc = $wc;
         register_shutdown_function(array($this, 'shutdown'));  //
@@ -113,7 +116,7 @@ class ExampleForexStrategyCommand extends Command {
 
             foreach($instruments as $instrument) {
                 $buy = $sell = 0;
-                $recentData = $util->getRecentData($instrument);
+                $recentData = $this->getRecentData($instrument);
                 $adx         = $indicators->adx($instrument, $recentData);
                 $_sma6       = trader_sma($recentData['close'], 6);
                 $sma6        = @array_pop($_sma6);

@@ -15,7 +15,6 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\BitfinexWebsocketCommand::class,
         Commands\CoinbaseWebsocketCommand::class,
-        Commands\GetHistoricalCommand::class,
         Commands\OandaStreamCommand::class,
         Commands\ExampleUsageCommand::class,
         Commands\ExampleCommand::class,
@@ -23,6 +22,7 @@ class Kernel extends ConsoleKernel
         Commands\BitfinexWebsocketETHCommand::class,
         Commands\WebsocketCoinbaseTestCommand::class,
         Commands\SignalsExampleCommand::class,
+        Commands\TestStrategiesCommand::class,
     ];
 
     /**

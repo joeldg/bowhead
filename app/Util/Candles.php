@@ -7,6 +7,8 @@
  */
 namespace Bowhead\Util;
 
+use Bowhead\Traits\OHLC;
+
 /**
  * Class Candles
  * @package Bowhead\Util
@@ -35,6 +37,8 @@ namespace Bowhead\Util;
  */
 class Candles
 {
+    use OHLC;
+
     /**
      * @var array
      *
@@ -123,10 +127,9 @@ class Candles
      */
     public function allCandles($pair='BTC/USD', $data=null)
     {
-        $util = new BrokersUtil();
         $ret = array();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
         foreach($this->candles as $cdlfunc => $name) {
             if (function_exists($cdlfunc)) {

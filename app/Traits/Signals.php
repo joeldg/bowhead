@@ -7,6 +7,7 @@
  */
 
 namespace Bowhead\Traits;
+
 use Bowhead\Util\BrokersUtil;
 use Bowhead\Util\Console;
 use Bowhead\Util\Indicators;
@@ -31,6 +32,8 @@ use Bowhead\Util\Indicators;
  */
 trait Signals
 {
+    use OHLC;
+
     /**
      * @var
      */
@@ -50,7 +53,7 @@ trait Signals
         $util        = new BrokersUtil();
 
         foreach ($instruments as $pair) {
-            $data  = $util->getRecentData($pair);
+            $data  = $this->getRecentData($pair);
             $flags = [];
             $flags['rsi']         = $indicators->rsi($pair, $data);
             $flags['stoch']       = $indicators->stoch($pair, $data);
@@ -117,5 +120,6 @@ trait Signals
             echo "\n".$lines[$ind];
         }
         echo "\n\n";
+        return null;
     }
 }

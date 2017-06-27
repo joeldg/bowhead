@@ -1,10 +1,13 @@
 <?php
 namespace Bowhead\Console\Commands;
 
+use Bowhead\Traits\OHLC;
 use Bowhead\Util\Console;
 use Illuminate\Console\Command;
 
-class OandaStreamCommand extends Command {
+class OandaStreamCommand extends Command
+{
+    use OHLC;
 
     /**
      * The console command name.
@@ -20,7 +23,7 @@ class OandaStreamCommand extends Command {
      */
     protected $description = 'The Oanda stream processor.';
 
-    public function markOHLC($ticker)
+    public function zmarkOHLC($ticker)
     {
         $ticker = json_decode($ticker,1);
         $last_price = $ticker['tick']['bid'];

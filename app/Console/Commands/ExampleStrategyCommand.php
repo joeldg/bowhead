@@ -2,6 +2,7 @@
 namespace Bowhead\Console\Commands;
 
 use Bowhead\Console\Kernel;
+use Bowhead\Traits\OHLC;
 use Illuminate\Console\Command;
 use Bowhead\Util;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,9 @@ use AndreasGlaser\PPC\PPC; // https://github.com/andreas-glaser/poloniex-php-cli
  * Class ExampleCommand
  * @package Bowhead\Console\Commands
  */
-class ExampleCommand extends Command {
+class ExampleCommand extends Command
+{
+    use OHLC;
 
     /**
      * The console command name.
@@ -111,7 +114,7 @@ class ExampleCommand extends Command {
 
             foreach($instruments as $instrument) {
                 $underbought = $overbought = 0;
-                $recentData = $util->getRecentData($instrument);
+                $recentData = $this->getRecentData($instrument);
 
                 $cci = $indicators->cci($instrument, $recentData);
                 $cmo = $indicators->cmo($instrument, $recentData);

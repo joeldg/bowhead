@@ -7,6 +7,7 @@
  */
 namespace Bowhead\Util;
 
+use Bowhead\Traits\OHLC;
 use Bowhead\Util\Util;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -36,6 +37,7 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
  */
 class Indicators
 {
+    use OHLC;
     /**
      * @var array
      *      array with the available types of moving averages
@@ -95,9 +97,8 @@ class Indicators
      */
     public function atr($pair='BTC/USD', $data=null, $period=14)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
         if ($period > count($data['close'])) {
             $period = round(count($data['close'])/2);
@@ -155,9 +156,8 @@ class Indicators
 
     public function bollingerBands($pair='BTC/USD', $data=null, $period=10)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
         $data2 = $data;
         #$prev_close = array_pop($data2['close']); #[count($data['close']) - 2]; // prior close
@@ -203,9 +203,8 @@ class Indicators
      */
     public function macd($pair='BTC/USD', $data=null, $period1=12, $period2=26, $period3=9)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
 
         # Create the MACD signal and pass in the three parameters: fast period, slow period, and the signal.
@@ -254,9 +253,8 @@ class Indicators
         $slowMAType   = $this->ma_type($slowMAType);
         $signalMAType = $this->ma_type($signalMAType);
 
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
 
         # Create the MACD signal and pass in the three parameters: fast period, slow period, and the signal.
@@ -300,9 +298,8 @@ class Indicators
         $LOW_RSI  = 30;
         $HIGH_RSI = 70;
 
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
         #$data2 = $data;
         #$current = array_pop($data2['close']); #$data['close'][count($data['close']) - 1];    // we assume this is current
@@ -341,9 +338,8 @@ class Indicators
      */
     public function stoch($pair='BTC/USD', $data=null, $matype1=TRADER_MA_TYPE_SMA, $matype2=TRADER_MA_TYPE_SMA)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
         if (empty($data['high'])) {
             return 0;
@@ -386,9 +382,8 @@ class Indicators
      */
     public function stochf($pair='BTC/USD', $data=null, $matype1=TRADER_MA_TYPE_SMA, $matype2=TRADER_MA_TYPE_SMA)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
         if (empty($data['high'])) {
             return 0;
@@ -438,9 +433,8 @@ class Indicators
      */
     public function awesome_oscillator($pair='BTC/USD', $data=null, $return_raw=false)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
         $data['mid'] = [];
         foreach($data['high'] as $high_key => $high_alue) {
@@ -483,9 +477,8 @@ class Indicators
      */
     public function mfi($pair='BTC/USD', $data=null, $period=14)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
 
         $mfi = trader_mfi($data['high'], $data['low'], $data['close'], $data['volume'], $period);
@@ -515,9 +508,8 @@ class Indicators
      */
     public function obv($pair='BTC/USD', $data=null, $period=14)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair, $period, true, 12); // getting day 'noon' data for last two weeks
+            $data = $this->getRecentData($pair, $period, true, 12); // getting day 'noon' data for last two weeks
         }
 
         $_obv = trader_obv($data['close'], $data['volume']);
@@ -561,9 +553,8 @@ class Indicators
      */
     public function sar($pair='BTC/USD', $data=null, $period=14, $acceleration=0.02, $maximum=0.02)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair, $period, true, 12); // getting day 'noon' data for last two weeks
+            $data = $this->getRecentData($pair, $period, true, 12); // getting day 'noon' data for last two weeks
         }
 
         // SEE TODO: http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:parabolic_sar
@@ -603,10 +594,8 @@ class Indicators
      */
     public function fsar($pair='BTC/USD', $data=null, $period=14, $acceleration=0.02, $maximum=0.02)
     {
-        $console = new \Bowhead\Util\Console();
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair, $period, true, 12); // getting day 'noon' data for last two weeks
+            $data = $this->getRecentData($pair, $period, true, 12); // getting day 'noon' data for last two weeks
         }
         if (empty($data['high'])) {
             return 0;
@@ -690,9 +679,8 @@ class Indicators
      */
     public function cci($pair='BTC/USD', $data=null, $period=14)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
 
         # array $high , array $low , array $close [, integer $timePeriod ]
@@ -719,9 +707,8 @@ class Indicators
      */
     public function cmo($pair='BTC/USD', $data=null, $period=14)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
 
         $cmo = trader_cmo($data['close'], $period);
@@ -747,9 +734,8 @@ class Indicators
      */
     public function aroonosc($pair='BTC/USD', $data=null, $period=14)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
 
         $aroonosc = trader_aroonosc($data['high'], $data['low'], $period);
@@ -784,9 +770,8 @@ class Indicators
      */
     public function adx($pair='BTC/USD', $data=null, $period=14)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
 
         $adx = trader_adx($data['high'], $data['low'], $data['close'], $period);
@@ -814,9 +799,8 @@ class Indicators
     public function stochrsi($pair='BTC/USD', $data=null, $period=14, $trend=false, $trend_period=5)
     {
         // trader_stochrsi ( array $real [, integer $timePeriod [, integer $fastK_Period [, integer $fastD_Period [, integer $fastD_MAType ]]]] )
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
         $stochrsi_trend = $stochrsi = trader_stochrsi($data['close'], $period);
         $stochrsi = array_pop($stochrsi);
@@ -863,9 +847,8 @@ class Indicators
     public function roc($pair='BTC/USD', $data=null, $period=14)
     {
         // trader_roc ( array $real [, integer $timePeriod ] )
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
         $roc = trader_roc($data['close'], $period);
         $roc = array_pop($roc);
@@ -886,9 +869,8 @@ class Indicators
      */
     public function willr($pair='BTC/USD', $data=null, $period=14)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
         $willr = trader_willr($data['high'], $data['low'], $data['close'], $period);
         $willr = array_pop($willr);
@@ -919,9 +901,8 @@ class Indicators
     public function ultosc($pair='BTC/USD', $data=null, $period1=7, $period2=14, $period3=28)
     {
         //trader_ultosc ( array $high , array $low , array $close [, integer $timePeriod1 [, integer $timePeriod2 [, integer $timePeriod3 ]]] )
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
         $ultosc = trader_ultosc($data['high'], $data['low'], $data['close'], $period1, $period2, $period3);
         $ultosc = array_pop($ultosc);
@@ -946,9 +927,8 @@ class Indicators
      */
     public function hli($pair='BTC/USD', $data=null, $period=28)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
         if (count($data['high'])<$period) {
             return 0;
@@ -993,9 +973,8 @@ class Indicators
      */
     public function er($pair='BTC/USD', $data=null)
     {
-        $util = new BrokersUtil();
         if (empty($data)) {
-            $data = $util->getRecentData($pair);
+            $data = $this->getRecentData($pair);
         }
         $highs = $data['high'];
         $lows  = $data['low'];

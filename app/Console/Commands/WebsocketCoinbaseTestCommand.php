@@ -8,7 +8,8 @@
 namespace Bowhead\Console\Commands;
 
 use Bowhead\Console\Kernel;
-use Bowhead\Util;
+use Bowhead\Util\Coinbase;
+use Bowhead\Util\Console;
 use Illuminate\Console\Command;
 
 /**
@@ -61,7 +62,7 @@ class WebsocketCoinbaseTestCommand extends Command {
      */
     public function fire()
     {
-        $this->console = $util = new Util\Console();
+        $this->console = $util = new Console();
 
         $this->instrument = 'BTC-USD';
         $loop = \React\EventLoop\Factory::create();
@@ -119,7 +120,7 @@ class WebsocketCoinbaseTestCommand extends Command {
      */
     private function getBook($instrument)
     {
-        $util = new Util();
+        $util = new Coinbase();
         return $util->get_endpoint('book', null, '?level=2', $instrument);
     }
 

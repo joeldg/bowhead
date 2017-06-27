@@ -91,13 +91,15 @@ DONE:
 5) Streaming data from Oanda
 6) Streaming data from Bitfinex
 7) Dockerfile easy-setup done and tested.
+8) Signals module
+9) Strategies module
+10) REST mapping module
 
 IN PROGRESS:
-1) REST-API mappings, the base is there.
+1) REST-API 
+2) Write my own Oanda, Bitfinex and Poloniex API wrappers.
 
 TODO:
 1) Standardize the calls to brokerages so the method names are the same across all of them.
-2) Generalized object wrapper for brokerages.
-3) Write my own Oanda, Bitfinex and Poloniex API wrappers.
-4) reporting, logging and backtesting tools.
+2) reporting, logging and backtesting tools.
 

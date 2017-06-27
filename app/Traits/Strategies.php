@@ -16,6 +16,62 @@ use Bowhead\Util\Indicators;
  */
 trait Strategies
 {
+    protected $strategies_all = [
+         'bowhead_sar_stoch'
+        ,'bowhead_awesome_macd'
+        ,'bowhead_adx_smas'
+        ,'bowhead_rsi_macd'
+        ,'bowhead_sar_rsi'
+        ,'bowhead_stoch_adx'
+        ,'bowhead_cci_scalper'
+        ,'bowhead_ema_scalper'
+        ,'bowhead_ema_stoch_rsi'
+        ,'bowhead_double_volatility'
+        ,'bowhead_adx_momentum'
+        ,'bowhead_base_150'
+        ,'bowhead_breakout_ma'
+        ,'bowhead_sar_awesome'
+        ,'bowhead_cci_ema'
+        ,'bowhead_bband_rsi'
+        ,'bowhead_ema_adx_macd'
+        ,'bowhead_mov_avg_sar'
+        ,'bowhead_momentum'
+        ,'bowhead_sma_stoch_rsi'
+    ];
+
+    protected $strategies_1m = [
+         'bowhead_sar_stoch'
+        ,'bowhead_awesome_macd'
+        ,'bowhead_adx_smas'
+        ,'bowhead_rsi_macd'
+        ,'bowhead_sar_rsi'
+        ,'bowhead_ema_scalper'
+    ];
+
+    protected $strategies_5m = [
+         'bowhead_stoch_adx'
+        ,'bowhead_cci_scalper'
+        ,'bowhead_adx_momentum'
+    ];
+
+    protected $strategies_15m = [
+        'bowhead_double_volatility'
+        ,'bowhead_bband_rsi'
+    ];
+
+    protected $strategies_30m = ['bowhead_sar_awesome'];
+
+    protected $strategies_1h = [
+        'bowhead_ema_stoch_rsi'
+        ,'bowhead_base_150'
+        ,'bowhead_breakout_ma' // technically this is a 1d, but can be used more
+        ,'bowhead_cci_ema'
+        ,'bowhead_ema_adx_macd' // technically a 4h
+        ,'bowhead_mov_avg_sar'
+        ,'bowhead_momentum'
+        ,'bowhead_sma_stoch_rsi'
+    ];
+
     /**
      * @param $data
      * @param $period
@@ -27,8 +83,8 @@ trait Strategies
     private function ema_maker($data, $period, $prior=false)
     {
         $ema = trader_ema($data, $period);
-        $ema = array_pop($ema);
-        $ema_prior = array_pop($ema);
+        $ema = @array_pop($ema) ?? 0;
+        $ema_prior = @array_pop($ema) ?? 0;
         return ($prior ? $ema_prior : $ema);
     }
 
@@ -42,8 +98,8 @@ trait Strategies
     private function sma_maker($data, $period, $prior=false)
     {
         $ema = trader_sma($data, $period);
-        $ema = array_pop($ema);
-        $ema_prior = array_pop($ema);
+        $ema = @array_pop($ema) ?? 0;
+        $ema_prior = @array_pop($ema) ?? 0;
         return ($prior ? $ema_prior : $ema);
     }
 
@@ -57,8 +113,8 @@ trait Strategies
     private function ma_maker($data, $period, $prior=false)
     {
         $ema = trader_ma($data, $period);
-        $ema = array_pop($ema);
-        $ema_prior = array_pop($ema);
+        $ema = @array_pop($ema) ?? 0;
+        $ema_prior = @array_pop($ema) ?? 0;
         return ($prior ? $ema_prior : $ema);
     }
 
@@ -102,12 +158,12 @@ trait Strategies
         $ao     = $indicators->awesome_oscillator($pair, $data);
         $macd   = $indicators->macd($pair, $data);
         /** Awesome + MACD */
-        if ($macd == -1 && $ao == -100) {
+        if ($macd < 0 && $ao < 0) {
             $return['side']     = 'short';
             $return['strategy'] = 'awesome_macd';
             return ($return_full ? $return : -1);
         }
-        if ($macd == 1 && $ao == 100) {
+        if ($macd > 0 && $ao > 0) {
             $return['side']     = 'long';
             $return['strategy'] = 'awesome_macd';
             return ($return_full ? $return : 1);
@@ -140,12 +196,12 @@ trait Strategies
         $sixCross   = (($prior_sma6 < $sma40 && $sma6 > $sma40) ? 1 : 0);
         $fortyCross = (($prior_sma40 < $sma6 && $sma40 > $sma6) ? 1 : 0);
 
-        if ($adx == 1 && $sixCross == 1) {
+        if ($adx > 0 && $sixCross == 1) {
             $return['side']     = 'short';
             $return['strategy'] = 'adx_smas';
             return ($return_full ? $return : -1);
         }
-        if ($adx == 1 && $fortyCross == 1) {
+        if ($adx > 0 && $fortyCross == 1) {
             $return['side']     = 'long';
             $return['strategy'] = 'adx_smas';
             return ($return_full ? $return : 1);
@@ -333,12 +389,12 @@ trait Strategies
         }
         $green_avg = (array_sum($green)/count($green));
 
-        if ($red_avg <= $green_avg && $redp_avg > $green_avg){
+        if ($red_avg < $green_avg && $redp_avg > $green_avg){
             $return['side']     = 'long';
             $return['strategy'] = 'ema_scalper';
             return ($return_full ? $return : 1);
         }
-        if ($red_avg >= $green_avg && $redp_avg < $green_avg){
+        if ($red_avg > $green_avg && $redp_avg < $green_avg){
             $return['side']     = 'short';
             $return['strategy'] = 'ema_scalper';
             return ($return_full ? $return : -1);
@@ -364,18 +420,35 @@ trait Strategies
         $slowk = $stoch[0];
         $slowd = $stoch[1];
 
-        $slowk = array_pop($slowk);
-        $slowd = array_pop($slowd);
+        $slowk1 = array_pop($slowk);
+        $slowkp = array_pop($slowk);
+        $slowd1 = array_pop($slowd);
+        $slowdp = array_pop($slowd);
+
+        $k_up = $d_up = false;
+        if ($slowkp < $slowk1) {
+            $k_up = true;
+        }
+        if ($slowdp < $slowd1) {
+            $d_up = true;
+        }
+        $pointed_down = $pointed_up = false;
+        if ($slowk < 80 && $slowd < 80 && $k_up && $d_up) {
+            $pointed_up = true;
+        }
+        if ($slowk > 20 && $slowd > 20 && !$k_up && !$d_up) {
+            $pointed_down = true;
+        }
 
         $rsi = trader_rsi ($data['close'], 14);
         $rsi = array_pop($rsi);
 
-        if ($ema5 >= $ema10 && $ema5p < $ema10 && $rsi > 50 && $slowk < 80 && $slowd < 80) {
+        if ($ema5 >= $ema10 && $ema5p < $ema10 && $rsi > 50 && $pointed_up) {
             $return['side']     = 'long';
             $return['strategy'] = 'ema_stoch_rsi';
             return ($return_full ? $return : 1);
         }
-        if ($ema5 <= $ema10 && $ema5p > $ema10 && $rsi < 50 && $slowk > 20 && $slowd > 20) {
+        if ($ema5 <= $ema10 && $ema5p > $ema10 && $rsi < 50 && $pointed_down) {
             $return['side']     = 'short';
             $return['strategy'] = 'ema_stoch_rsi';
             return ($return_full ? $return : -1);
@@ -453,6 +526,7 @@ trait Strategies
     public function bowhead_base_150($pair, $data, $return_full=false)
     {
         if (count($data['close']) < 365) {
+            return 0;
             return array('err' => "need larger data set. (365 min)");
         }
         $ma6   = $this->ma_maker($data['close'], 6);
@@ -528,9 +602,9 @@ trait Strategies
     {
         $indicators = new Indicators();
 
-        $sar  = $indicators->sar($pair, $data['close']);
+        $sar  = $indicators->sar($pair, $data);
         $ema5 = $this->ema_maker($data['close'], 5);
-        $ao   = $indicators->awesome_oscillator($pair, $data['close']);
+        $ao   = $indicators->awesome_oscillator($pair, $data);
         $price = array_pop($data['close']);
 
         if ($sar < 0 && $ao > 0 && $ema5 < $price) {
@@ -645,7 +719,7 @@ trait Strategies
     {
         $indicators = new Indicators();
 
-        $sar  = $indicators->sar($pair, $data['close']);
+        $sar  = $indicators->sar($pair, $data);
 
         $ema10   = $this->ema_maker($data['close'], 10);
         $ema10p  = $this->ema_maker($data['close'], 10, 1);

@@ -128,7 +128,7 @@ class CoinbaseWebsocketCommand extends Command {
      */
     private function getBook($instrument)
     {
-        $util = new Util\BrokersUtil();
+        $util = new Util\Coinbase();
         return $util->get_endpoint('book', null, '?level=2', $instrument);
     }
 
