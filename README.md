@@ -25,7 +25,11 @@ This project has a companion article which walks you through how to set it up an
 setting up your first strategy and running it on [Whaleclub](https://whaleclub.co/join/tn6uE) 
 and on [1Broker](https://1broker.com/?r=21434), which you will need accounts on both.
  
-The companion article is on Medum and is -- [Let’s write a cryptocurrency bot.](https://medium.com/@joeldg/an-advanced-tutorial-a-new-crypto-currency-trading-bot-boilerplate-framework-e777733607ae)
+The companion article is on Medum and is:
+
+Part 1: [Let’s write a cryptocurrency bot (part 1).](https://medium.com/@joeldg/an-advanced-tutorial-a-new-crypto-currency-trading-bot-boilerplate-framework-e777733607ae)
+
+Part 2: [Let’s write a cryptocurrency bot (part 2)](https://medium.com/@joeldg/lets-write-a-cryptocurrency-bot-part-2-7adf47f5a80e)
 
 I highly suggest you read through it and follow along to get it up and running.
 
