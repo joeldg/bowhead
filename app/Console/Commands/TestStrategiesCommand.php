@@ -14,6 +14,10 @@ use Symfony\Component\Console\Input\InputArgument;
 /**
  * Class ExampleCommand
  * @package Bowhead\Console\Commands
+ *
+ *          SEE COMMENTS AT THE BOTTOM TO SEE WHERE TO ADD YOUR OWN
+ *          CONDITIONS FOR A TEST.
+ *
  */
 class TestStrategiesCommand extends Command {
 
@@ -141,8 +145,8 @@ class TestStrategiesCommand extends Command {
          *  30% of price with 200 leverage = ((30/200)/100) = 0.15%
          *
          */
-        $tp = round(( $price * (30/$lev) ) / 100, 5);
-        $sl = round(( $price * (20/$lev) ) / 100, 5);
+        $tp = round(( $price * (20/$lev) ) / 100, 5);
+        $sl = round(( $price * (10/$lev) ) / 100, 5);
         $amt_takeprofit = ($direction == 'long' ? ((float)$price + $tp) : ((float)$price - $tp));
         $amt_stoploss   = ($direction == 'long' ? ((float)$price - $sl) : ((float)$price + $sl));
 
@@ -184,7 +188,7 @@ class TestStrategiesCommand extends Command {
     public function handle()
     {
         $rundemo     = false;
-        $symbollines = $recentprices = [];
+        $pair_strategies = $recentprices = [];
         if ($rundemo = $this->argument('runtest')) {
             $this->info("Running the DEMO test of all the strategies:");
         }
@@ -195,7 +199,17 @@ class TestStrategiesCommand extends Command {
         $console     = new \Bowhead\Util\Console();
 
         $instruments = ['USD_JPY','NZD_USD','EUR_GBP','USD_CAD','USD_CNH','USD_MXN','USD_TRY','AUD_USD','EUR_USD','USD_CHF'];
+        $leverages   = [222,200,100,88,50,25,1];
+        /**
+         *  $strategies = $this->strategies_all = every single strategy.
+         *  $strategies = $this->strategies_1m  = only 1 minute periods
+         *  $strategies = $this->strategies_5m  = only 5 minute periods
+         *  $strategies = $this->strategies_15m = fifteen minute periods
+         *  $strategies = $this->strategies_30m = thirty
+         *  $strategies = $this->strategies_1h  = sixty
+         */
         $strategies = $this->strategies_all;
+
         foreach($strategies as $k => $strategy) {
             $strategies[$k] = str_replace('bowhead_','',$strategy);
         }
@@ -215,7 +229,7 @@ class TestStrategiesCommand extends Command {
             /**
              *  First up we loop through the strategies dynamically run the strategies
              *  using $this->${'strategy'}(param1, param2)
-             *  $symbollines just has [pair][strategy] = {-1/1/0}
+             *  $pair_strategies just has [pair][strategy] = {-1/1/0}
              */
             foreach($instruments as $instrument) {
                 $recentData = $this->getRecentData($instrument, 220);
@@ -228,7 +242,7 @@ class TestStrategiesCommand extends Command {
                 foreach ($this->strategies_all as $strategy) {
                     $flags[str_replace('bowhead_','',$strategy)] = $this->${'strategy'}($instrument, $recentData);
                 }
-                $symbollines[$instrument] = $flags;
+                $pair_strategies[$instrument] = $flags;
             }
 
             /**
@@ -246,7 +260,7 @@ class TestStrategiesCommand extends Command {
                         if (!isset($lines[$strategy])) {
                             $lines[$strategy] = '';
                         }
-                        $color = ($symbollines[$instrument][$strategy] > 0 ? 'bg_green' : ($symbollines[$instrument][$strategy] < 0 ? 'bg_red' : 'bg_black'));
+                        $color = ($pair_strategies[$instrument][$strategy] > 0 ? 'bg_green' : ($pair_strategies[$instrument][$strategy] < 0 ? 'bg_red' : 'bg_black'));
                         $lines[$strategy] .= $console->colorize(str_pad($strategy, 17), $color);
                     }
                 }
@@ -256,24 +270,57 @@ class TestStrategiesCommand extends Command {
                 }
             } else {
                 /**
-                 *  DO THE ACTUAL TEST...
+                 *  DO THE ACTUAL TESTS...
+                 *  HERE IS WHERE WE CAN BUILD UP CUSTOM STRATEGY TESTS
                  */
-                foreach ($symbollines as $pair => $strategies) {
+                foreach ($pair_strategies as $pair => $strategies) {
                     $sigs = $this->compileSignals($signals[$pair], 1);
                     foreach ($strategies as $strategy => $flag) {
                         if ($flag == 0){
                             continue; // not a short or a long
                         }
+                        $direction  = ($pair_strategies[$pair][$strategy] > 0 ? 'long' : 'short');
                         /**
-                         *   TODO: HERE IS WHERE YOU CAN TEST SIGNALS BEFORE YOU CREATE
-                         *   TODO: POSITIONS AND SEND THEM OUT.
-                         *   TODO: YOU CAN REFINE YOUR STRATEGIES HERE FURTHER.
-                         *   TODO: THIS IS REALLY JUST A SIMPLE AND EASY STARTING OFF
-                         *   TODO: POINT FOR YOU.
+                         *  Here we determine the leverage based on signals.
+                         *  There are only a certain leverage steps we can use
+                         *  so we need to fit into the closest 222,200,100,88,50,25,1
                          */
-                        $dir    = ($symbollines[$pair][$strategy] > 0 ? 'long' : 'short');
-                        echo "\nCreate $dir for $pair $strategy";
-                        $this->createPosition($pair, $dir, $strategy, $sigs['pos'], $sigs['neg']);
+                        $lev = 220;
+                        $closest = 0;
+                        $lev = ($direction == 'long' ? $lev - ($sigs['neg'] * 20) : $lev - ($sigs['pos'] * 20));
+                        foreach ($leverages as $leverage) {
+                            if (abs($lev - $closest) > abs($leverage - $lev)) {
+                                $closest = $leverage;
+                            }
+                        }
+                        $lev = $closest;
+                        if ($lev < 25) {
+                            $lev = 25;
+                        }
+                        /** now we have the leverage. */
+
+                        /**
+                         *   TODO:      HERE IS WHERE YOU CAN TEST SIGNALS BEFORE YOU CREATE
+                         *   TODO:      POSITIONS AND SEND THEM OUT.
+                         *   TODO:      YOU CAN REFINE YOUR STRATEGIES HERE FURTHER.
+                         *   TODO:      THIS IS REALLY JUST A SIMPLE AND EASY STARTING OFF
+                         *   TODO:      POINT FOR YOU.
+                         */
+                        /*
+                         *  You could specify something like the following
+                         *  if ($direction == 'long && $sigs['pos'] > 8 || $direction == 'short && $sigs['neg'] > 8) {
+                         *  Which would use the signals to verify your trades.
+                         */
+                        // TODO ******************************************************************************************
+
+                        echo "\nCreate $direction ($lev) for $pair $strategy";
+                        $order = $this->createPosition($pair, $direction, $strategy, $sigs['pos'], $sigs['neg'], 2, $lev);
+
+                        // TODO ******************************************************************************************
+                        /*
+                         *   You may want to do any post-processing you need here with $order
+                         *   Order will look like: http://docs.whaleclub.co/#new-position
+                         */
                     }
                 }
             }

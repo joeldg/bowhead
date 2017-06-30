@@ -23,6 +23,7 @@ class Kernel extends ConsoleKernel
         Commands\WebsocketCoinbaseTestCommand::class,
         Commands\SignalsExampleCommand::class,
         Commands\TestStrategiesCommand::class,
+        Commands\GdaxScalperCommand::class,
     ];
 
     /**

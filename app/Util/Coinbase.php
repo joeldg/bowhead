@@ -382,8 +382,8 @@ class Coinbase
                 }
                 break;;
         }
-
         $rorder = $this->get_endpoint('place', json_encode($order));
+        print_r($rorder);
         if ($rorder) {
             /**
              *  We need to set (internal guid <-> external guid) so we can do lookups in cache
@@ -498,6 +498,7 @@ class Coinbase
         curl_close($curl);
 
         if($statusCode != 200) {
+            print_r($response);
             error_log('STATUS CODE', $statusCode . ' ' . $response);
         }
         return array( "statusCode" => $statusCode, "body" => $response );

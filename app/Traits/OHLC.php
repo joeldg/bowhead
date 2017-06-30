@@ -18,11 +18,15 @@ trait OHLC
      */
     public function markOHLC($ticker, $bf=false, $bf_pair='BTC/USD')
     {
+        $timeid = date('YmdHi'); // 201705301522 unique for date
         if ($bf) {
             /** Bitfinex websocked */
             $last_price = $ticker[7];
             $volume = $ticker[8];
             $instrument = $bf_pair;
+
+            /** if timeid passed, we use it, otherwise use generated one.. */
+            $timeid = ($ticker['timeid'] ?? $timeid);
         } else {
             /** Oanda websocket */
             $ticker = json_decode($ticker, 1);
@@ -30,7 +34,6 @@ trait OHLC
             $instrument = $ticker['tick']['instrument'];
             $volume = 0;
         }
-        $timeid = date('YmdHi'); // 201705301522 unique for date
         $ins = \DB::insert("
             INSERT INTO bowhead_ohlc_1m 
             (`instrument`, `timeid`, `open`, `high`, `low`, `close`, `volume`)

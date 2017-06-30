@@ -81,9 +81,6 @@ class CoinbaseWebsocketCommand extends Command {
                     if (empty($this->book)) {
                         $this->book = $this->getBook($this->instrument);
                         $this->processBook();
-
-
-                        #$this->displayBook();
                     }
                     $data = json_decode($msg,1);
                     echo $this->console->tableFormatArray($data);

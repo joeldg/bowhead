@@ -10,6 +10,7 @@
         "andreas-glaser/poloniex-php-client": "dev-master",
         "barryvdh/laravel-cors": "^0.9.2",
         "dingo/api": "1.0.x@dev",
+        "elasticsearch/elasticsearch": "^5.2",
         "guzzlehttp/guzzle": "^6.2",
         "laravel/framework": "5.4.*",
         "laravel/tinker": "~1.0",
