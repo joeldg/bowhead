@@ -152,6 +152,14 @@ class OneBroker {
             error_log('STATUS CODE', $statusCode . ' ' . $response);
         }
 
+        $body = json_decode($response,1);
+        
+        if ($body['error'] === true) {
+            throw new \RuntimeException(
+                sprintf('OneBroker API returned an error - %d: %s', $body['error_code'], $body['error_message'])
+            );
+        }
+        
         return array( "statusCode" => $statusCode, "body" => json_decode($response,1));
     }
 
