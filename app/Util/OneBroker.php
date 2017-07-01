@@ -166,14 +166,14 @@ class OneBroker {
         # /market/list.php ? category=$category  (response[]->symbol)
         if (!empty($category)) {
             if (\Cache::has('ONEBROKER::category::detail::'.$category)) {
-                \Cache::get('ONEBROKER::category::detail::'.$category);
+                $data = \Cache::get('ONEBROKER::category::detail::'.$category);
             } else {
                 $data = $this->getApiData('market/list.php', ['category' => $category]);
                 \Cache::put('ONEBROKER::category::detail::'.$category, $data, 60*24);
             }
         } else {
             if (\Cache::has('ONEBROKER::categories')) {
-                \Cache::get('ONEBROKER::categories');
+                $data = \Cache::get('ONEBROKER::categories');
             } else {
                 $data = $this->getApiData('market/categories.php', ['category'=>$category]);
                 \Cache::put('ONEBROKER::categories', $data, 60*24);
