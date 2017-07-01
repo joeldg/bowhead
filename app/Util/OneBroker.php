@@ -152,7 +152,7 @@ class OneBroker {
             error_log('STATUS CODE', $statusCode . ' ' . $response);
         }
 
-        $body = json_decode($response,1);
+        $body = json_decode($response, 1);
         
         if ($body['error'] === true) {
             throw new \RuntimeException(
@@ -160,7 +160,7 @@ class OneBroker {
             );
         }
         
-        return array( "statusCode" => $statusCode, "body" => json_decode($response,1));
+        return array( "statusCode" => $statusCode, "body" => $body);
     }
 
     /**
