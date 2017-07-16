@@ -2,6 +2,7 @@
 
 namespace Bowhead\Console;
 
+use Bowhead\Console\Commands\FxStreamCommand;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -27,6 +28,7 @@ class Kernel extends ConsoleKernel
         Commands\TestCandlesCommand::class,
         Commands\TestTrendsCommand::class,
         Commands\RandomWalkCommand::class,
+        Commands\FxStreamCommand::class,
     ];
 
     /**
