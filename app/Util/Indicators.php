@@ -154,7 +154,7 @@ class Indicators
      * Once a breakout occurs, we enter a trade on whatever side the price makes its breakout.
      */
 
-    public function bollingerBands($pair='BTC/USD', $data=null, $period=10)
+    public function bollingerBands($pair='BTC/USD', $data=null, $period=10, $devup=2, $devdn=2)
     {
         if (empty($data)) {
             $data = $this->getRecentData($pair);
@@ -164,7 +164,7 @@ class Indicators
         $current = array_pop($data2['close']); #[count($data['close']) - 1];    // we assume this is current
 
         # array $real [, integer $timePeriod [, float $nbDevUp [, float $nbDevDn [, integer $mAType ]]]]
-        $bbands = trader_bbands($data['close'], $period, 2, 2, 0);
+        $bbands = trader_bbands($data['close'], $period, $devup, $devdn, 0);
         $upper  = $bbands[0];
         #$middle = $bbands[1]; // we'll find a use for you, one day
         $lower  = $bbands[2];
@@ -1003,6 +1003,191 @@ class Indicators
 
     }
 
+    /**
+     *  NO TALib specific funciton
+     *  Market Meanness Index - tendency to revert to the mean
+     *  currently moving in our out of a trend?
+     *  prevent loss by false trend signals
+     *
+     *  if mmi > 75 then not trending
+     *  if mmi < 75 then trending
+     */
+    public function mmi($pair='BTC/USD', $data=null, $period=200)
+    {
+        $data_close = [];
+        foreach($data['close'] as $point) {
+            $data_close[] = $point;
+        }
+        $nl = $nh = 0;
+        $len = count($data_close);
+        $median = (array_sum($data_close)/$len);
+        for($a=0;$a<$len;$a++){
+            if ($data_close[$a] > $median && $data_close[$a] > @$data_close[$a-1]) {
+                $nl++;
+            } elseif ($data_close[$a] < $median && $data_close[$a] < @$data_close[$a-1]) {
+                $nh++;
+            }
+        }
+        $mmi = 100.*($nl+$nh)/($len-1);
+        if ($mmi < 75) {
+            return 1;
+        }
+        if ($mmi > 75) {
+            return -1;
+        }
+        return 0;
+    }
+
+
+    /**
+     *
+     *      Hilbert Transform - Sinewave
+     *      negative numbers = uptrend
+     *      positive numbers = downtrend
+     *
+     *      If leadSine crosses over DCSine then buy
+     *      If leadSine crosses under DCSine then sell
+     *
+     *      This is correct to the best of my knowledge, the TAlib funcitons are a little
+     *      different than the Mesa one I think.
+     *
+     *      If this is incorrect, please let me know.
+     */
+    public function hts($pair='BTC/USD', $data=null, $trend=false)
+    {
+        if (empty($data)) {
+            $data = $this->getRecentData($pair);
+        }
+        $hts = trader_ht_sine($data['open'],$data['close']);
+        $dcsine     = array_pop($hts[1]);
+        $p_dcsine   = array_pop($hts[1]);
+        // leadsine is the first one it looks like.
+        $leadsine   = array_pop($hts[0]);
+        $p_leadsine = array_pop($hts[0]);
+
+        if ($trend) {
+            /** if the last two sets of both are negative */
+            if ($dcsine < 0 && $p_dcsine < 0 && $leadsine < 0 && $p_leadsine < 0) {
+                return 1; // uptrend
+            }
+            /** if the last two sets of both are positive */
+            if ($dcsine > 0 && $p_dcsine > 0 && $leadsine > 0 && $p_leadsine > 0) {
+                return -1; // downtrend
+            }
+            return 0;
+        }
+
+        /** WE ARE NOT ASKING FOR THE TREND, RETURN A SIGNAL */
+        if ($leadsine > $dcsine && $p_leadsine <= $p_dcsine){
+            return 1; // buy
+        }
+        if ($leadsine < $dcsine && $p_leadsine >= $p_dcsine){
+            return -1; // sell
+        }
+        return 0;
+    }
+
+    /**
+     *      Hilbert Transform - Instantaneous Trendline
+     *      WMA(4)
+     *      trader_ht_trendline
+     *
+     *      if WMA(4) < htl for five periods then in downtrend (sell in trend mode)
+     *      if WMA(4) > htl for five periods then in uptrend   (buy in trend mode)
+     *
+     *      // if price is 1.5% more than trendline, then  declare a trend
+     *      (WMA(4)-trendline)/trendline >= 0.15 then trend = 1
+     *
+     */
+    public function htl($pair='BTC/USD', $data=null)
+    {
+        if (empty($data)) {
+            $data = $this->getRecentData($pair);
+        }
+        $declared = $uptrend = $downtrend = 0;
+        $a_htl = $a_wma4 = [];
+        $htl  = trader_ht_trendline($data['close']);
+        $wma4 = trader_wma($data['close'], 4);
+
+        for($a=0;$a<5;$a++) {
+            $a_htl[$a]  = array_pop($htl);
+            $a_wma4[$a] = array_pop($wma4);
+            $uptrend   += ($a_wma4[$a] > $a_htl[$a] ? 1 : 0);
+            $downtrend += ($a_wma4[$a] < $a_htl[$a] ? 1 : 0);
+
+            $declared = (($a_wma4[$a]-$a_htl[$a])/$a_htl[$a]);
+        }
+        if ($uptrend || $declared >= 0.15) {
+            return 1;
+        }
+        if ($downtrend || $declared <= 0.15) {
+            return -1;
+        }
+        return 0;
+    }
+
+    /**
+     *
+     *      Hilbert Transform - Trend vs Cycle Mode
+     *      if > 1 then in trend mode ???
+     */
+    public function httc($pair='BTC/USD', $data=null, $numperiods=false)
+    {
+        if (empty($data)) {
+            $data = $this->getRecentData($pair);
+        }
+        $a_htm = trader_ht_trendmode($data['close']);
+        $htm = array_pop($a_htm);
+
+        /**
+         *  We can return the number of periods we have been
+         *  in either a trend or a cycle by calling this again with
+         *  $numperiods == true
+         */
+        if ($numperiods) {
+            $nump = 1;
+            $test = $htm;
+            for($b=0;$b<count($a_htm);$b++) {
+                $test = array_pop($a_htm);
+                if ($test == $htm) {
+                    $nump++;
+                } else {
+                    break;
+                }
+            }
+            return $nump;
+        }
+
+        /**
+         *  Otherwise we just return if we are in a trend or not.
+         */
+        if ($htm == 1) {
+            return 1; // we are in a trending mode
+        }
+        return 0; // we are cycling.
+    }
+
+
+    # TODO
+    # trader_wclprice
+    #Weighted Close is determined by using High, Low and Closing Price of a Security during one day.
+    # In order to determine Weighted Close, the formula used is;
+    #Weighted Close = ((Closing Price * 2) + High Price + Low Price) / 4
+    # TODO
+    /**  WADL
+     * To calculate Williams' Accumulation/Distribution indicator, first determine the True Range High ("TRH") and True Range Low ("TRL").
+    Today's accumulation/distribution is then determined by comparing today's closing price to yesterday's closing price.
+    If today's close is greater than yesterday's close:
+    If today's close is less than yesterday's close:
+    If today's close is equal to yesterday's close:
+    The Williams' Accumulation/Distribution indicator is a cummulative total of these daily values.
+     */
+    # TODO
+    /** ADOSC  (maybe )
+     * 1. Money Flow Multiplier = [(close  -  low) - (high - close)] /(high - low)
+    2. Money Flow Volume = Money Flow Multiplier x volume for the period
+    3. Accumulation/Distribution= previous Accumulation/Distribution + current period's Money Flow Volume
+     */
 
     /**
      * @param string $pair

@@ -37,6 +37,15 @@ trait Strategies
         ,'bowhead_mov_avg_sar'
         ,'bowhead_momentum'
         ,'bowhead_sma_stoch_rsi'
+
+        // not organized into time series yet...
+        // need to test them more..
+        ,'bowhead_sar_sma'
+        ,'bowhead_ema_adx'
+        ,'bowhead_trend_bounce'
+        ,'bowhead_5th_element'
+        ,'bowhead_powerranger'
+        ,'bowhead_famamama'
     ];
 
     protected $strategies_1m = [
@@ -55,14 +64,14 @@ trait Strategies
     ];
 
     protected $strategies_15m = [
-        'bowhead_double_volatility'
+         'bowhead_double_volatility'
         ,'bowhead_bband_rsi'
     ];
 
     protected $strategies_30m = ['bowhead_sar_awesome'];
 
     protected $strategies_1h = [
-        'bowhead_ema_stoch_rsi'
+         'bowhead_ema_stoch_rsi'
         ,'bowhead_base_150'
         ,'bowhead_breakout_ma' // technically this is a 1d, but can be used more
         ,'bowhead_cci_ema'
@@ -97,10 +106,10 @@ trait Strategies
      */
     private function sma_maker($data, $period, $prior=false)
     {
-        $ema = trader_sma($data, $period);
-        $ema = @array_pop($ema) ?? 0;
-        $ema_prior = @array_pop($ema) ?? 0;
-        return ($prior ? $ema_prior : $ema);
+        $sma = trader_sma($data, $period);
+        $sma = @array_pop($sma) ?? 0;
+        $sma_prior = @array_pop($sma) ?? 0;
+        return ($prior ? $sma_prior : $sma);
     }
 
     /**
@@ -112,10 +121,28 @@ trait Strategies
      */
     private function ma_maker($data, $period, $prior=false)
     {
-        $ema = trader_ma($data, $period);
-        $ema = @array_pop($ema) ?? 0;
-        $ema_prior = @array_pop($ema) ?? 0;
-        return ($prior ? $ema_prior : $ema);
+        $ma = trader_ma($data, $period);
+        $ma = @array_pop($ma) ?? 0;
+        $ma_prior = @array_pop($ma) ?? 0;
+        return ($prior ? $ma_prior : $ma);
+    }
+
+    /**
+     *  TODO
+     *  Predictive moving average
+     *  when trigger crosses
+     */
+    private function pma()
+    {
+        /**
+        price((h+l)/2)
+        Vars: WMAl(0), WMA2(01,Predict ( 0 , Trigger (0);
+        WMAl = (7*Price + 6*Price[l] + 5*Price[2] + 4*Price[3] + 3*Price[4] + 2*Price[S] + Price[6]) / 28;
+        WMA2 = (7*WMA1 + 6*WMA1[l] + 5*WMA1[21 + 4*WMA1[3] + 3*WMA1[41 + 2*WMA1[51 + WMA1[6]) / 28;
+
+        Predict = 2*WMA1 - WMA2
+        Trigger = (4*Predict + 3* Predict[1] + 2*Predict[2] + Predict) / 10
+        //*/
     }
 
     /**
@@ -806,5 +833,246 @@ trait Strategies
         }
         return 0;
     }
+
+    /**
+     * @param      $pair
+     * @param      $data
+     * @param bool $return_full
+     *
+     *  1min-scalp
+     *  sar + sma60
+     *  long=price>sma60, sar below price (sl 15 below, tp 10 above)
+     *  short=price<sma60, sar above price (sl 15, tp 10)
+     *
+     *  @return int
+     */
+    public function bowhead_sar_sma($pair, $data, $return_full=false)
+    {
+        $indicators = new Indicators();
+        $price      = array_pop($data['close']);
+        $sar        = $indicators->fsar($pair, $data);
+        $sma60      = $this->sma_maker($data['close'], 60);
+
+        if ($price > $sma60 && $sar == 1) {
+            $return['side']     = 'long';
+            $return['strategy'] = 'sar_sma';
+            return ($return_full ? $return : 1);
+        } elseif ($price < $sma60 && $sar == -1) {
+            $return['side']     = 'short';
+            $return['strategy'] = 'sar_sma';
+            return ($return_full ? $return : -1);
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * @param      $pair
+     * @param      $data
+     * @param bool $return_full
+     *
+     *  1h-day
+     *  ema 12
+     *  ema 36
+     *  ad x14
+     *  long ema12 > ema36 (from below) and adx
+     *  short ema12 < ema36 (from above) and adx
+     *
+     *  @return int
+     */
+    public function bowhead_ema_adx($pair, $data, $return_full=false)
+    {
+        $indicators = new Indicators();
+        $ema12  = $this->ema_maker($data['close'], 12);
+        $ema12p = $this->ema_maker($data['close'], 12, 1); // prior
+        $ema36  = $this->ema_maker($data['close'], 36);
+        $adx    = $indicators->adx($pair, $data);
+
+        if ($ema12 > $ema36 && $ema12p < $ema36 && $adx) {
+            $return['side'] = 'long';
+            $return['strategy'] = 'ema_adx';
+            return ($return_full ? $return : 1);
+        } elseif ($ema12 < $ema36 && $ema12p > $ema36 && $adx) {
+            $return['side']     = 'short';
+            $return['strategy'] = 'ema_adx';
+            return ($return_full ? $return : -1);
+        } else {
+            return 0;
+        }
+    }
+
+
+    /**
+     *  1. Bollinger Bands (12, deviation [Dev] 2)
+     *  2. Bollinger Bands (12, Dev 4)
+     *
+     *  1h - swing
+     *  long= price hits #1 upper band and retraces back to center line
+     *  short= price hits #1 lower band and retraces back to center line
+     *  SL and TP are #2 lines
+     *
+     *  NOTE: this is really just a simple bbands retrace strategy.
+     *
+     *  @return int
+     */
+    public function bowhead_trend_bounce($pair, $data, $return_full=false)
+    {
+        // custom bbands
+        $bbands1 = trader_bbands($data['close'], 12, 2, 2, 0);
+        $upper1  = $bbands1[0];
+        $middle1 = $bbands1[1];
+        $lower1  = $bbands1[2];
+
+        $bbands2 = trader_bbands($data['close'], 12, 4, 4, 0);
+        $upper2  = $bbands2[0];
+        $middle2 = $bbands2[1];
+        $lower2  = $bbands2[2];
+
+        $price = array_pop($data['close']);
+        $high  = array_pop($data['high']);
+        $low   = array_pop($data['low']);
+
+        if ($high >= $upper1 && ($price <= $middle1 || $low <= $middle1)){
+            $return['side'] = 'long';
+            $return['strategy'] = 'trend_bounce';
+            return ($return_full ? $return : 1);
+        } elseif ($high >= $upper1 && ($price <= $middle1 || $low <= $middle1)){
+            $return['side'] = 'short';
+            $return['strategy'] = 'trend_bounce';
+            return ($return_full ? $return : -11);
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * @param      $pair
+     * @param      $data
+     * @param bool $return_full
+     *
+     *  MACD (data, 12, 26, 9)
+     *  long = macd + four positive bars on histo
+     *  short = macd + four negative bars on histo
+     *
+     *  NOTE: This is a pretty simple 'only' MACD strategy.
+     *
+     *  @return int
+     */
+    public function bowhead_5th_element($pair, $data, $return_full=false)
+    {
+        $indicators = new Indicators();
+        $macd_base = $indicators->macd($pair, $data);
+
+        // custom macd
+        $macd = trader_macd($data['close'], 12, 26, 9);
+        $macd_raw = $macd[0];
+        $signal   = $macd[1];
+        $hist     = $macd[2];
+
+        $h1 = array_pop($hist);
+        $h2 = array_pop($hist);
+        $h3 = array_pop($hist);
+        $h4 = array_pop($hist);
+        $h5 = array_pop($hist);
+
+        if ($macd_base && ($h1 > $h2 && $h2 > $h3 && $h3 > $h4 && $h4 > $h5)) {
+            $return['side'] = 'long';
+            $return['strategy'] = '5th_element';
+            return ($return_full ? $return : 1);
+        } elseif ($macd_base && ($h1 < $h2 && $h2 < $h3 && $h3 < $h4 && $h4 < $h5)) {
+            $return['side'] = 'short';
+            $return['strategy'] = '5th_element';
+            return ($return_full ? $return : -1);
+        } else {
+            return 0;
+        }
+
+    }
+
+    /**
+     * @param      $pair
+     * @param      $data
+     * @param bool $return_full
+     *
+     * 1h range
+     * stoch
+     *      %K period = 10
+     *      %D period = 3
+     *      Slowing = 3
+     *      Price field = High/Low
+     *      MA method = Simple
+     *      Levels 20 and 80
+     *  determine support and resistance range
+     *
+     *  long=stoch crosses over 20
+     *  short stoch crosses below 80
+     *
+     *  Stoch only for ranging/sideways markets only
+     *
+     *  @return int
+     */
+    public function bowhead_powerranger($pair, $data, $return_full=false)
+    {
+        $stoch = trader_stoch($data['high'], $data['low'], $data['close'], 10, 3, TRADER_MA_TYPE_SMA, 3, TRADER_MA_TYPE_SMA);
+        $slowk = $stoch[0];
+        $slowd = $stoch[1];
+
+        $slowka = array_pop($slowk);
+        $slowkp = array_pop($slowk);
+
+        $slowda = array_pop($slowd);
+        $slowdp = array_pop($slowd);
+
+        if ($slowka > 20 && $slowkp < 20 || $slowda > 20 && $slowdp < 20) {
+            $return['side'] = 'long';
+            $return['strategy'] = 'powerranger';
+            return 1;
+        }elseif ($slowka < 80 && $slowkp > 80 || $slowda < 80 && $slowdp > 80) {
+            $return['side'] = 'short';
+            $return['strategy'] = 'powerranger';
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * @param      $pair
+     * @param      $data
+     * @param bool $return_full
+     *
+     *      Rocket Science for Traders (page 182)
+     *
+     *      mama = trader_mama ( array $real, 0.5, 0.05)
+     *      fama = trader_mama ( array $real, 0.25, 0.025) // fast mama
+     *
+     *      sell = fama crosses from below to above mama
+     *      buy  = fama crosses from above to below mama
+     *
+     *  @return int
+     */
+    public function bowhead_famamama($pair, $data, $return_full=false)
+    {
+        // trader_mama ( array $real [, float $fastLimit [, float $slowLimit ]] )
+        $mama = trader_mama ($data['close'], 0.5, 0.05);
+        $fama = trader_mama ($data['close'], 0.25, 0.025);
+
+        $mama_current = array_pop($mama);
+        $fama_current = array_pop($fama);
+        $fama_prior   = array_pop($fama);
+
+        if ($fama_current > $mama_current && $fama_prior < $mama_current) {
+            $return['side'] = 'long';
+            $return['strategy'] = 'famamama';
+            return 1;
+        } elseif($fama_current < $mama_current && $fama_prior > $mama_current) {
+            $return['side'] = 'short';
+            $return['strategy'] = 'famamama';
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+
 
 }

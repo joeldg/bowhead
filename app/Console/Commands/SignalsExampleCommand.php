@@ -3,6 +3,7 @@ namespace Bowhead\Console\Commands;
 
 use Bowhead\Console\Kernel;
 use Bowhead\Traits\Signals;
+use Bowhead\Traits\OHLC;
 use Illuminate\Console\Command;
 use Bowhead\Util;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,7 @@ use AndreasGlaser\PPC\PPC; // https://github.com/andreas-glaser/poloniex-php-cli
  */
 class SignalsExampleCommand extends Command {
 
-    use Signals;
+    use Signals, OHLC;
 
     /**
      * The console command name.

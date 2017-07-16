@@ -31,6 +31,8 @@ Part 1: [Let’s write a cryptocurrency bot (part 1).](https://medium.com/@joeld
 
 Part 2: [Let’s write a cryptocurrency bot (part 2)](https://medium.com/@joeldg/lets-write-a-cryptocurrency-bot-part-2-7adf47f5a80e)
 
+Part 3: [Let’s write a cryptocurrency bot (part 3)](https://medium.com/@joeldg/lets-write-a-cryptocurrency-bot-part-3-826d65e55184)
+
 I highly suggest you read through it and follow along to get it up and running.
 
 #### basic setup

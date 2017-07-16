@@ -24,6 +24,9 @@ class Kernel extends ConsoleKernel
         Commands\SignalsExampleCommand::class,
         Commands\TestStrategiesCommand::class,
         Commands\GdaxScalperCommand::class,
+        Commands\TestCandlesCommand::class,
+        Commands\TestTrendsCommand::class,
+        Commands\RandomWalkCommand::class,
     ];
 
     /**

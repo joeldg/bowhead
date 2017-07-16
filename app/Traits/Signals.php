@@ -32,8 +32,6 @@ use Bowhead\Util\Indicators;
  */
 trait Signals
 {
-    use OHLC;
-
     /**
      * @var
      */
@@ -43,11 +41,13 @@ trait Signals
      * @param bool $return
      * @param bool $compile
      */
-    public function signals($return=false, $compile=false)
+    public function signals($return=false, $compile=false, $instruments=null)
     {
         $lines = [];
         $inds        = ['rsi','stoch','stochrsi','macd','adx','willr','cci','atr','hli','ultosc','roc','er'];
-        $instruments = ['USD_JPY','NZD_USD','EUR_GBP','USD_CAD','USD_CNH','USD_MXN','USD_TRY','AUD_USD','EUR_USD','USD_CHF'];
+        if (empty($instruments)) {
+            $instruments = ['BTC/USD', 'USD_JPY', 'NZD_USD', 'EUR_GBP', 'USD_CAD', 'USD_CNH', 'USD_MXN', 'USD_TRY', 'AUD_USD', 'EUR_USD', 'USD_CHF'];
+        }
         $indicators  = new Indicators();
         $console     = new Console();
         $util        = new BrokersUtil();
