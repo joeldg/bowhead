@@ -66,7 +66,7 @@ class FxStreamCommand extends Command
 
                 $ticker = [];
                 $ticker['tick']['bid'] = round(((float) $fx->Bid + (float) $fx->Ask) / 2, 5);
-                $ticker['tick']['instrument'] = $symbol;
+                $ticker['tick']['instrument'] = $symbolt;
 
                 $this->markOHLC(json_encode($ticker));
 
@@ -86,8 +86,8 @@ class FxStreamCommand extends Command
             }
 
             // for cool output uncomment
-            echo join(' | ', $output) ."\n";
-            sleep(15);
+            #echo join(' | ', $output) ."\n";
+            sleep(12);
         }
     }
 }
