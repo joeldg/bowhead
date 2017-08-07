@@ -42,7 +42,7 @@ trait OHLC
             ->get();
         foreach ($last1m as $last1) {
             $last1timeid = $last1->timeid;
-	    $last1timeid = date("YmdHi", strtotime("+1 minutes", $last1timeid));		
+	    $last1timeid = date("YmdHi", strtotime("+1 minutes", strtotime($last1timeid)));		
         }
         if ($last1timeid = $timeid) {
             $ins = \DB::insert("
