@@ -42,8 +42,9 @@ trait OHLC
             ->get();
         foreach ($last1m as $last1) {
             $last1timeid = $last1->timeid;
+	    $last1timeid = date("YmdHi", strtotime("+1 minutes", $last1timeid));		
         }
-        if ($last1timeid < $timeid) {
+        if ($last1timeid = $timeid) {
             $ins = \DB::insert("
             INSERT INTO bowhead_ohlc_1m 
             (`instrument`, `timeid`, `open`, `high`, `low`, `close`, `volume`)
@@ -64,8 +65,9 @@ trait OHLC
             ->get();
         foreach ($last5m as $last5) {
             $last5timeid = $last5->timeid;
+	    $last5timeid = date("YmdHi", strtotime("+4 minutes", strtotime($last5timeid)));
         }
-        if ($last5timeid + 4 < $timeid) {
+        if ($last5timeid < $timeid) {
             $ins = \DB::insert("
             INSERT INTO bowhead_ohlc_5m 
             (`instrument`, `timeid`, `open`, `high`, `low`, `close`, `volume`)
@@ -85,8 +87,9 @@ trait OHLC
             ->get();
         foreach ($last15m as $last15) {
             $last15timeid = $last15->timeid;
+	    $last15timeid = date("YmdHi", strtotime("+14 minutes", strtotime($last15timeid)));	    
         }
-        if ($last15timeid + 14 < $timeid) {
+        if ($last15timeid < $timeid) {
             $ins = \DB::insert("
             INSERT INTO bowhead_ohlc_15m 
             (`instrument`, `timeid`, `open`, `high`, `low`, `close`, `volume`)
@@ -106,8 +109,9 @@ trait OHLC
             ->get();
         foreach ($last30m as $last30) {
             $last30timeid = $last30->timeid;
+	    $last30timeid = date("YmdHi", strtotime("+29 minutes", strtotime($last30timeid)));
         }
-        if ($last30timeid + 29 < $timeid) {
+        if ($last30timeid < $timeid) {
             $ins = \DB::insert("
             INSERT INTO bowhead_ohlc_30m 
             (`instrument`, `timeid`, `open`, `high`, `low`, `close`, `volume`)
@@ -127,8 +131,9 @@ trait OHLC
             ->get();
         foreach ($last60m as $last60) {
             $last60timeid = $last60->timeid;
+	    $last60timeid = date("YmdHi", strtotime("+59 minutes", strtotime($last60timeid)));
         }
-        if ($last60timeid + 59 < $timeid) {
+        if ($last60timeid < $timeid) {
             $ins = \DB::insert("
             INSERT INTO bowhead_ohlc_1h 
             (`instrument`, `timeid`, `open`, `high`, `low`, `close`, `volume`)
