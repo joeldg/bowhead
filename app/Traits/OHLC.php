@@ -57,7 +57,7 @@ trait OHLC
         ");
         }
 
-        /** 5m table update **/
+        /** 5m table update  **/
 
         $last5m = \DB::table('bowhead_ohlc_5m')->select(DB::raw('MAX(timeid) AS timeid'))
             ->where('instrument', $bf_pair)
