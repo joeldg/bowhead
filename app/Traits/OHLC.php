@@ -191,9 +191,9 @@ trait OHLC
          *  doing identical pulls for signals.
          */
         $key = 'recent::'.$pair.'::'.$limit."::$day_data::$hour::$periodSize";
-        /*if(\Cache::has($key)) {
+        if(\Cache::has($key)) {
             return \Cache::get($key);
-        }*/
+        }
 
         $a = \DB::table('bowhead_ohlc_'.$periodSize)
             ->select(DB::raw('*, unix_timestamp(ctime) as buckettime'))
@@ -243,7 +243,7 @@ trait OHLC
 	   $ptime = $ftime;	
 	}
 
-        #\Cache::put($key, $ret, 2);
+        \Cache::put($key, $ret, 2);
         return $ret;
     }
 }
