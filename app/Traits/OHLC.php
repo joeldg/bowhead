@@ -214,6 +214,7 @@ trait OHLC
         }
 
 	$ptime = null;
+	$validperiods = 0;
 	foreach ($a as $ab) {
 	   #echo print_r($ab,1);
 	   $array = (array) $ab;
@@ -238,12 +239,11 @@ trait OHLC
 		#echo 'Past Time is '.$ptime.' and current time is '.$ftime."\n";
 		$periodcheck = $ptime - $ftime;
 		$variance = 1.5 * $variance;
-		#echo 'VARIANCE '.$variance;
-		#$echo 'TIMING '.$periodcheck."\n";
 		if ((int)$periodcheck > (int)$variance) {
-		echo 'MISSING DATA FOR THIS TIME PERIOD SO CANNOT CONTINUE. PLEASE ENSURE PRICE SYNC IS RUNNING AND WAIT FOR ADDITIONAL DATA TO BE LOGGED BEFORE TRYING AGAIN';
+		echo 'YOU HAVE '.$validperiods.' PERIODS OF VALID PRICE DATA OUT OF '.$limit.'. Please ensure price sync is running and wait for additional data to be logged before trying again. Additionally you could use a smaller time period if available.'."\n";
 		die();
 		}	
+		$validperiods++;
 	   }
 	   $ptime = $ftime;	
 	}
