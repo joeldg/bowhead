@@ -452,27 +452,26 @@ trait OHLC
 	foreach ($a as $ab) {
 	   #echo print_r($ab,1);
 	   $array = (array) $ab;
-	   $ftime = $array['buckettime'];	
+	   $ftime = $array['buckettime'];
 	   if ($ptime == null) {
 	      $ptime = $ftime;
 	   } else {
 	 	/** Check for missing periods **/
-		if ($periodsize = '1m') {
-		   $variance = (int)60;
-		} else if ($periodsize = '5m') {
-		   $variance = (int)300;
-		} else if ($periodsize = '15m') {
-		   $variance = (int)900;
-		} else if ($periodsize = '30m') {
-		   $variance = (int)1800;
-		} else if ($periodsize = '1h') {
-		   $variance = (int)3600;
-		} else if ($periodsize = '1d') {
-		   $variance = (int)86400;
+		if ($periodSize == '1m') {
+		   $variance = (int)75;
+		} else if ($periodSize == '5m') {
+		   $variance = (int)375;
+		} else if ($periodSize == '15m') {
+		   $variance = (int)1125;
+		} else if ($periodSize == '30m') {
+		   $variance = (int)2250;
+		} else if ($periodSize == '1h') {
+		   $variance = (int)4500;
+		} else if ($periodSize == '1d') {
+		   $variance = (int)108000;
 		}
 		#echo 'Past Time is '.$ptime.' and current time is '.$ftime."\n";
 		$periodcheck = $ptime - $ftime;
-		$variance = 1.5 * $variance;
 		if ((int)$periodcheck > (int)$variance) {
 		echo 'YOU HAVE '.$validperiods.' PERIODS OF VALID PRICE DATA OUT OF '.$limit.'. Please ensure price sync is running and wait for additional data to be logged before trying again. Additionally you could use a smaller time period if available.'."\n";
 		die();
