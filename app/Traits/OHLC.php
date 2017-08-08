@@ -34,7 +34,18 @@ trait OHLC
             $instrument = $ticker['tick']['instrument'];
             $volume = 0;
         }
-        $ins = \DB::insert("
+
+        /** 1m table update **/
+        //echo date("Y-m-d h:i:sa")."\n".print_r($ticker);
+        $last1m = \DB::table('bowhead_ohlc_1m')->select(DB::raw('MAX(timeid) AS timeid'))
+            ->where('instrument', $bf_pair)
+            ->get();
+        foreach ($last1m as $last1) {
+            $last1timeid = $last1->timeid;
+	    $last1timeid = date("YmdHi", strtotime("+1 minutes", strtotime($last1timeid)));		
+        }
+        if ($last1timeid = $timeid) {
+            $ins = \DB::insert("
             INSERT INTO bowhead_ohlc_1m 
             (`instrument`, `timeid`, `open`, `high`, `low`, `close`, `volume`)
             VALUES
@@ -45,57 +56,96 @@ trait OHLC
             `volume` = VALUES(`volume`),
             `close`  = VALUES(`close`)
         ");
+        }
 
-        $timeidb = 5 * round($timeid / 5);
-        $ins = \DB::insert("
+        /** 5m table update  **/
+
+        $last5m = \DB::table('bowhead_ohlc_5m')->select(DB::raw('MAX(timeid) AS timeid'))
+            ->where('instrument', $bf_pair)
+            ->get();
+        foreach ($last5m as $last5) {
+            $last5timeid = $last5->timeid;
+	    $last5timeid = date("YmdHi", strtotime("+4 minutes", strtotime($last5timeid)));
+        }
+        if ($last5timeid < $timeid) {
+            $ins = \DB::insert("
             INSERT INTO bowhead_ohlc_5m 
             (`instrument`, `timeid`, `open`, `high`, `low`, `close`, `volume`)
             VALUES
-            ('$instrument', $timeidb, $last_price, $last_price, $last_price, $last_price, $volume)
+            ('$instrument', $timeid, $last_price, $last_price, $last_price, $last_price, $volume)
             ON DUPLICATE KEY UPDATE 
             `high`   = CASE WHEN `high` < VALUES(`high`) THEN VALUES(`high`) ELSE `high` END,
             `low`    = CASE WHEN `low` > VALUES(`low`) THEN VALUES(`low`) ELSE `low` END,
             `volume` = VALUES(`volume`),
             `close`  = VALUES(`close`)
         ");
+        }
 
-        $timeidc = 15 * round($timeid / 15);
-        $ins = \DB::insert("
+        /** 15m table update **/
+        $last15m = \DB::table('bowhead_ohlc_15m')->select(DB::raw('MAX(timeid) AS timeid'))
+            ->where('instrument', $bf_pair)
+            ->get();
+        foreach ($last15m as $last15) {
+            $last15timeid = $last15->timeid;
+	    $last15timeid = date("YmdHi", strtotime("+14 minutes", strtotime($last15timeid)));	    
+        }
+        if ($last15timeid < $timeid) {
+            $ins = \DB::insert("
             INSERT INTO bowhead_ohlc_15m 
             (`instrument`, `timeid`, `open`, `high`, `low`, `close`, `volume`)
             VALUES
-            ('$instrument', $timeidc, $last_price, $last_price, $last_price, $last_price, $volume)
+            ('$instrument', $timeid, $last_price, $last_price, $last_price, $last_price, $volume)
             ON DUPLICATE KEY UPDATE 
             `high`   = CASE WHEN `high` < VALUES(`high`) THEN VALUES(`high`) ELSE `high` END,
             `low`    = CASE WHEN `low` > VALUES(`low`) THEN VALUES(`low`) ELSE `low` END,
             `volume` = VALUES(`volume`),
             `close`  = VALUES(`close`)
         ");
+        }
 
-        $timeidd = 30 * round($timeid / 30);
-        $ins = \DB::insert("
+        /** 30m table update **/
+        $last30m = \DB::table('bowhead_ohlc_30m')->select(DB::raw('MAX(timeid) AS timeid'))
+            ->where('instrument', $bf_pair)
+            ->get();
+        foreach ($last30m as $last30) {
+            $last30timeid = $last30->timeid;
+	    $last30timeid = date("YmdHi", strtotime("+29 minutes", strtotime($last30timeid)));
+        }
+        if ($last30timeid < $timeid) {
+            $ins = \DB::insert("
             INSERT INTO bowhead_ohlc_30m 
             (`instrument`, `timeid`, `open`, `high`, `low`, `close`, `volume`)
             VALUES
-            ('$instrument', $timeidd, $last_price, $last_price, $last_price, $last_price, $volume)
+            ('$instrument', $timeid, $last_price, $last_price, $last_price, $last_price, $volume)
             ON DUPLICATE KEY UPDATE 
             `high`   = CASE WHEN `high` < VALUES(`high`) THEN VALUES(`high`) ELSE `high` END,
             `low`    = CASE WHEN `low` > VALUES(`low`) THEN VALUES(`low`) ELSE `low` END,
             `volume` = VALUES(`volume`),
             `close`  = VALUES(`close`)
         ");
-        $timeide = 59 * round($timeid / 59);
-        $ins = \DB::insert("
+        }
+
+        /** 1h table update **/
+        $last60m = \DB::table('bowhead_ohlc_1h')->select(DB::raw('MAX(timeid) AS timeid'))
+            ->where('instrument', $bf_pair)
+            ->get();
+        foreach ($last60m as $last60) {
+            $last60timeid = $last60->timeid;
+	    $last60timeid = date("YmdHi", strtotime("+59 minutes", strtotime($last60timeid)));
+        }
+        if ($last60timeid < $timeid) {
+            $ins = \DB::insert("
             INSERT INTO bowhead_ohlc_1h 
             (`instrument`, `timeid`, `open`, `high`, `low`, `close`, `volume`)
             VALUES
-            ('$instrument', $timeide, $last_price, $last_price, $last_price, $last_price, $volume)
+            ('$instrument', $timeid, $last_price, $last_price, $last_price, $last_price, $volume)
             ON DUPLICATE KEY UPDATE 
             `high`   = CASE WHEN `high` < VALUES(`high`) THEN VALUES(`high`) ELSE `high` END,
             `low`    = CASE WHEN `low` > VALUES(`low`) THEN VALUES(`low`) ELSE `low` END,
             `volume` = VALUES(`volume`),
             `close`  = VALUES(`close`)
         ");
+        }
 
         return true;
     }
@@ -162,6 +212,41 @@ trait OHLC
         } else {
             $ret = $this->organizePairData($a);
         }
+
+	$ptime = null;
+	$validperiods = 0;
+	foreach ($a as $ab) {
+	   #echo print_r($ab,1);
+	   $array = (array) $ab;
+	   $ftime = $array['buckettime'];	
+	   if ($ptime == null) {
+	      $ptime = $ftime;
+	   } else {
+	 	/** Check for missing periods **/
+		if ($periodsize = '1m') {
+		   $variance = (int)60;
+		} else if ($periodsize = '5m') {
+		   $variance = (int)300;
+		} else if ($periodsize = '15m') {
+		   $variance = (int)900;
+		} else if ($periodsize = '30m') {
+		   $variance = (int)1800;
+		} else if ($periodsize = '1h') {
+		   $variance = (int)3600;
+		} else if ($periodsize = '1d') {
+		   $variance = (int)86400;
+		}
+		#echo 'Past Time is '.$ptime.' and current time is '.$ftime."\n";
+		$periodcheck = $ptime - $ftime;
+		$variance = 1.5 * $variance;
+		if ((int)$periodcheck > (int)$variance) {
+		echo 'YOU HAVE '.$validperiods.' PERIODS OF VALID PRICE DATA OUT OF '.$limit.'. Please ensure price sync is running and wait for additional data to be logged before trying again. Additionally you could use a smaller time period if available.'."\n";
+		die();
+		}	
+		$validperiods++;
+	   }
+	   $ptime = $ftime;	
+	}
 
         \Cache::put($key, $ret, 2);
         return $ret;
