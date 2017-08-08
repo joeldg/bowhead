@@ -50,10 +50,10 @@ trait OHLC
 
         /** 1m table update **/
 
-	$open1 = null;
-	$close1 = null;
-	$high1 = null;
-	$low1 = null;
+        $open1 = null;
+        $close1 = null;
+        $high1 = null;
+        $low1 = null;
 
         $timeid = date("YmdHi", strtotime($timeid));
 
@@ -80,7 +80,7 @@ trait OHLC
                 $high1 = $accum1a->high;
                 $low1 = $accum1a->low;
             }
-            
+
 
             /* Get Open price from ticker data and last minute */
             $accum1mb = \DB::table('bowhead_ohlc_tick')->select(DB::raw('open AS open'))
@@ -105,10 +105,10 @@ trait OHLC
 
             foreach ($accum1mc as $accum1c) {
                 $close1 = $accum1c->close;
-            }            
-	   
+            }
 
-	    if ($open1 && $close1 && $high1 && $low1) {
+
+            if ($open1 && $close1 && $high1 && $low1) {
                 $ins = \DB::insert("
             INSERT INTO bowhead_ohlc_1m 
             (`instrument`, `timeid`, `open`, `high`, `low`, `close`, `volume`)
@@ -126,10 +126,10 @@ trait OHLC
 
         /** 5m table update  **/
 
-	$open5 = null;
-	$close5 = null;
-	$high5 = null;
-	$low5 = null;
+        $open5 = null;
+        $close5 = null;
+        $high5 = null;
+        $low5 = null;
 
         $last5m = \DB::table('bowhead_ohlc_5m')->select(DB::raw('MAX(timeid) AS timeid'))
             ->where('instrument', $bf_pair)
