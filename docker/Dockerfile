@@ -30,7 +30,7 @@ RUN { \
         echo mysql-community-server mysql-community-server/re-root-pass password ''; \
         echo mysql-community-server mysql-community-server/remove-test-db select false; \
     } | debconf-set-selections \
-    && apt-get update && apt-get install -y mysql-server
+    && apt-get update && apt-get install -y mariadb-server
 
 RUN pecl channel-update pecl.php.net
 RUN pecl install trader
