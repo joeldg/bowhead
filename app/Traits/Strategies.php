@@ -689,12 +689,12 @@ trait Strategies
         $rsi    = $indicators->rsi($pair, $data, 11);
         $bbands = $indicators->bollingerBands($pair, $data, 20);
 
-        if ($rsi > 70 && $bbands == -1) {
+        if ($rsi == -1 && $bbands == -1) {
             $return['side']     = 'long';
             $return['strategy'] = 'bband_rsi';
             return ($return_full ? $return : 1);
         }
-        if ($rsi < 30 && $bbands == 1) {
+        if ($rsi == 1 && $bbands == 1) {
             $return['side']     = 'short';
             $return['strategy'] = 'bband_rsi';
             return ($return_full ? $return : -1);
