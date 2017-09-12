@@ -217,6 +217,11 @@ class Indicators
         $signal   = $macd[1];
         $hist     = $macd[2];
 
+        //If not enough Elements for the Function to complete
+        if(!$macd || !$macd_raw){
+        	return 0;
+		}
+
         #$macd = $macd_raw[count($macd_raw)-1] - $signal[count($signal)-1];
         $macd = (array_pop($macd_raw) - array_pop($signal));
         # Close position for the pair when the MACD signal is negative
@@ -905,6 +910,10 @@ class Indicators
             $data = $this->getRecentData($pair);
         }
         $ultosc = trader_ultosc($data['high'], $data['low'], $data['close'], $period1, $period2, $period3);
+        //TODO verify if bug or not, it returned 0 with few data
+        if(!$ultosc){
+        	return 0;
+		}
         $ultosc = array_pop($ultosc);
         if ($ultosc <= 30) {
             return 1; // oversold
@@ -985,6 +994,12 @@ class Indicators
         $macd_raw = $macd[0];
         $signal   = $macd[1];
         #$hist     = $macd[2];
+
+		//Not enough Data
+		if(!$macd_raw || !$signal){
+			return 0;
+		}
+
         $macd_current  = (array_pop($macd_raw) - array_pop($signal));
 
         $ema  = trader_ema($data['close'], 13);

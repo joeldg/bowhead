@@ -91,9 +91,9 @@ trait Strategies
      */
     private function ema_maker($data, $period, $prior=false)
     {
-        $ema = trader_ema($data, $period);
-        $ema = @array_pop($ema) ?? 0;
-        $ema_prior = @array_pop($ema) ?? 0;
+        $emaArray = trader_ema($data, $period);
+        $ema = @array_pop($emaArray) ?? 0;
+        $ema_prior = @array_pop($emaArray) ?? 0;
         return ($prior ? $ema_prior : $ema);
     }
 
@@ -106,9 +106,9 @@ trait Strategies
      */
     private function sma_maker($data, $period, $prior=false)
     {
-        $sma = trader_sma($data, $period);
-        $sma = @array_pop($sma) ?? 0;
-        $sma_prior = @array_pop($sma) ?? 0;
+        $smaArray = trader_sma($data, $period);
+        $sma = @array_pop($smaArray) ?? 0;
+        $sma_prior = @array_pop($smaArray) ?? 0;
         return ($prior ? $sma_prior : $sma);
     }
 
@@ -121,9 +121,9 @@ trait Strategies
      */
     private function ma_maker($data, $period, $prior=false)
     {
-        $ma = trader_ma($data, $period);
-        $ma = @array_pop($ma) ?? 0;
-        $ma_prior = @array_pop($ma) ?? 0;
+        $maArray = trader_ma($data, $period);
+        $ma = @array_pop($maArray) ?? 0;
+        $ma_prior = @array_pop($maArray) ?? 0;
         return ($prior ? $ma_prior : $ma);
     }
 
@@ -689,12 +689,12 @@ trait Strategies
         $rsi    = $indicators->rsi($pair, $data, 11);
         $bbands = $indicators->bollingerBands($pair, $data, 20);
 
-        if ($rsi > 70 && $bbands == -1) {
+        if ($rsi > -1 && $bbands == -1) {
             $return['side']     = 'long';
             $return['strategy'] = 'bband_rsi';
             return ($return_full ? $return : 1);
         }
-        if ($rsi < 30 && $bbands == 1) {
+        if ($rsi < 1 && $bbands == 1) {
             $return['side']     = 'short';
             $return['strategy'] = 'bband_rsi';
             return ($return_full ? $return : -1);
