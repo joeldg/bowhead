@@ -51,16 +51,21 @@ class SignalsExampleCommand extends Command {
         echo "PRESS 'q' TO QUIT AND CLOSE ALL POSITIONS\n\n\n";
         stream_set_blocking(STDIN, 0);
 
-        $instruments = ['BTC/USD'];
-        $util        = new Util\BrokersUtil();
-        $console     = new \Bowhead\Util\Console();
-        $indicators  = new \Bowhead\Util\Indicators();
+        while(1){
+			$instruments = ['BTC/USD'];
+			
+			$util        = new Util\BrokersUtil();
+			$console     = new \Bowhead\Util\Console();
+			$indicators  = new \Bowhead\Util\Indicators();
 
+			$this->signals(false, false, $instruments);
 
-        $this->signals();
+			$back = $this->signals(1,2, $instruments);
+			print_r($back);
 
-        $back = $this->signals(1,2);
-        print_r($back);
+			sleep(5);
+		}
+
 
         return null;
     }

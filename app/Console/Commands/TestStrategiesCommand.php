@@ -2,6 +2,7 @@
 namespace Bowhead\Console\Commands;
 
 use Bowhead\Console\Kernel;
+use Bowhead\Traits\OHLC;
 use Bowhead\Traits\Signals;
 use Bowhead\Traits\Strategies;
 use Illuminate\Console\Command;
@@ -21,7 +22,7 @@ use Symfony\Component\Console\Input\InputArgument;
  */
 class TestStrategiesCommand extends Command {
 
-    use Signals, Strategies; // add our traits
+    use Signals, Strategies, OHLC; // add our traits
 
     /**
      * The console command name.
@@ -197,8 +198,8 @@ class TestStrategiesCommand extends Command {
         stream_set_blocking(STDIN, 0);
 
         $console     = new \Bowhead\Util\Console();
-
-        $instruments = ['USD_JPY','NZD_USD','EUR_GBP','USD_CAD','USD_CNH','USD_MXN','USD_TRY','AUD_USD','EUR_USD','USD_CHF'];
+		
+		$instruments = ['USD_JPY','NZD_USD','EUR_GBP','USD_CAD','USD_CNH','USD_MXN','USD_TRY','AUD_USD','EUR_USD','USD_CHF'];
         $leverages   = [222,200,100,88,50,25,1];
         /**
          *  $strategies = $this->strategies_all = every single strategy.
@@ -208,7 +209,7 @@ class TestStrategiesCommand extends Command {
          *  $strategies = $this->strategies_30m = thirty
          *  $strategies = $this->strategies_1h  = sixty
          */
-        $strategies = $this->strategies_all;
+        $strategies = $this->strategies_1m;
 
         foreach($strategies as $k => $strategy) {
             $strategies[$k] = str_replace('bowhead_','',$strategy);
@@ -224,7 +225,7 @@ class TestStrategiesCommand extends Command {
             /**
              *  GET ALL OUR SIGNALS HERE
              */
-            $signals = $this->signals(1); // get the full list
+            $signals = $this->signals(1, false, $instruments); // get the full list
 
             /**
              *  First up we loop through the strategies dynamically run the strategies
@@ -236,11 +237,13 @@ class TestStrategiesCommand extends Command {
                 $recentData_copy = $recentData['close'];
                 $recentprices[$instrument] = array_pop($recentData_copy);
                 $flags = [];
+
                 /**
                  *  Using $strategies_all from strategies trait
                  */
-                foreach ($this->strategies_all as $strategy) {
-                    $flags[str_replace('bowhead_','',$strategy)] = $this->${'strategy'}($instrument, $recentData);
+                foreach ($strategies as $strategy) {
+                	$function_name = 'bowhead_' . $strategy;
+                    $flags[$strategy] = $this->$function_name($instrument, $recentData);
                 }
                 $pair_strategies[$instrument] = $flags;
             }
