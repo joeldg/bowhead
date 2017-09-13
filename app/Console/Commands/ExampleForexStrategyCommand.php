@@ -125,8 +125,8 @@ class ExampleForexStrategyCommand extends Command
                 $sma40       = @array_pop($_sma40);
                 $prior_sma40 = @array_pop($_sma40);
                 /** have the lines crossed? */
-                $down_cross  = (($prior_sma6 <= $sma40 && $sma6 > $sma40) ? 1 : 0); // 40 dips below 6
-                $up_cross    = (($prior_sma40 <= $sma6 && $sma40 > $sma6) ? 1 : 0); // 40 jumps above 6
+                $down_cross  = (($prior_sma6 <= $prior_sma40 && $sma6 > $sma40) ? 1 : 0); // 40 dips below 6
+                $up_cross    = (($prior_sma40 <= $prior_sma6 && $sma40 > $sma6) ? 1 : 0); // 40 jumps above 6
 
 
                 if ($adx == 1 && $down_cross) {
