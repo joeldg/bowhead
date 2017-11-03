@@ -52,7 +52,7 @@ echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 echo "+----- READ ME:                                                     -----+"
 echo "+------------------------------------------------------------------------+"
 echo "+----- Bowhead is now set up:                                       -----+"
-echo "+----- you need to modify your /root/bowhead/.env                   -----+"
+echo "+----- you need to modify your /var/www/bowhead/.env                   -----+"
 echo "+-----                                                              -----+"
 echo "+----- SWAP TO A DIFFERENT TERMINAL TO CONNECT TO THIS INSTANCE     -----+"
 echo "+----- USE: 'docker exec -it bowhead /bin/bash' to get  access      -----+"
