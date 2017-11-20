@@ -3,10 +3,14 @@
 import pandas as pd
 import redis
 import sys
+from os.path import join, dirname
+import os
+import dotenv
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
-r = redis.StrictRedis(host='localhost', port=6379, db=0)
+dotenv.load(join(dirname(__file__), '../../.env'))
+r = redis.StrictRedis(host=os.environ.get('REDIS_HOST'), port=os.environ.get('REDIS_PORT'), db=0)
 book = r.get('laravel:tempbook')
 if sys.version_info[0] < 3:
     from StringIO import StringIO
