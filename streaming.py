@@ -27,8 +27,8 @@ def connect_to_stream():
 
     dotenv.load()
 
-    domainDict = { 'live' : 'stream-fxtrade.oanda.com',
-               'demo' : 'stream-fxpractice.oanda.com' }
+    domainDict = { 'live' : 'api-fxtrade.oanda.com',
+               'demo' : 'api-fxpractice.oanda.com' }
 
     # Replace the following variables with your personal values 
     environment = "demo" # Replace this 'live' if you wish to connect to the live environment 
@@ -39,11 +39,11 @@ def connect_to_stream():
 
     try:
         s = requests.Session()
-        url = "https://" + domain + "/v1/prices"
+        url = "https://" + domain + "/v3/accounts/" + account_id + "/pricing"
         headers = {'Authorization' : 'Bearer ' + access_token,
                    # 'X-Accept-Datetime-Format' : 'unix'
                   }
-        params = {'instruments' : instruments, 'accountId' : account_id}
+        params = {'instruments' : instruments}
         req = requests.Request('GET', url, headers = headers, params = params)
         pre = req.prepare()
         resp = s.send(pre, stream = True, verify = True)
@@ -66,9 +66,9 @@ def demo(displayHeartbeat):
                 print("Caught exception when converting message into json\n" + str(e))
                 return
 
-            if "instrument" in msg or "tick" in msg or displayHeartbeat:
-		fifo=open('quotes','a')
-		fifo.write(line + "\n")
+            if "prices" in msg or displayHeartbeat:
+                fifo=open('quotes','a')
+                fifo.write(line + "\n")
                 #print(line)
 
 def main():
@@ -88,5 +88,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

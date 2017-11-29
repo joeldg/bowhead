@@ -1,3 +1,7 @@
+UPDATE FOR BITFINIX ISSUES: 
+API https://www.cryptonator.com/api and 
+Will be adding in https://github.com/ccxt/ccxt instead of custom wrapping all the api's
+
 # bowhead
 a REST-API and console-based cryptocurrency trading bot boilerplate and framework 
 -

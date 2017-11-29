@@ -25,7 +25,6 @@ class OandaStreamCommand extends Command
 
     public function zmarkOHLC($ticker)
     {
-        $ticker = json_decode($ticker,1);
         $last_price = $ticker['tick']['bid'];
         $instrument = $ticker['tick']['instrument'];
         $timeid = date('YmdHi'); // 201705301522 unique for date
@@ -57,19 +56,32 @@ class OandaStreamCommand extends Command
         stream_set_blocking(STDIN, 0);
         $last = [];
         while(1){
+            $curr = [];
             if (ord(fgetc(STDIN)) == 113) {
                 echo "QUIT detected...";
                 return null;
             }
 
             $pipeB = fopen("quotes",'r');
-            $line = fgets($pipeB, 2048);
+            $line = fgets($pipeB);
+            $results = json_decode($line);
 
-            $this->markOHLC($line);
+            if (empty($results)) {
+              continue;
+            }
 
-            $thisline   = json_decode($line,1);
-            $ins        = $thisline['tick']['instrument'];
-            $curr[$ins] = (($thisline['tick']['bid'] + $thisline['tick']['ask'])/2);
+            foreach ($results as $result) {
+              if (is_array($result)) {
+                foreach ($result as $price) {
+                  $ticker = [];
+                  $ticker['tick']['bid'] = round(((float) $price->bids[0]->price + (float) $price->asks[0]->price) / 2, 5);
+                  $ticker['tick']['instrument'] = $price->instrument;
+                  $this->markOHLC($ticker);
+                  $ins = $ticker['tick']['instrument'];
+                  $curr[$ins] = (($price->bids[0]->price + $price->asks[0]->price)/2);
+                }
+              }
+            }
 
             $output = [];
             foreach ($curr as $instrument => $bid) {
