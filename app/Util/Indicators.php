@@ -104,8 +104,8 @@ class Indicators
             $period = round(count($data['close'])/2);
         }
         $data2 = $data;
-        $prev_close = array_pop($data2['close']); #[count($data['close']) - 2]; // prior close
         $current = array_pop($data2['close']); #[count($data['close']) - 1];    // we assume this is current
+        $prev_close = array_pop($data2['close']); #[count($data['close']) - 2]; // prior close
 
         $atr = trader_atr ($data['high'], $data['low'], $data['close'], $period);
         $atr = array_pop($atr) ; #[count($atr)-1]; // pick off the last
