@@ -29,6 +29,7 @@ trait OHLC
             $timeid = ($ticker['timeid'] ?? $timeid);
         } else {
             /** Oanda websocket */
+            $ticker = json_decode($ticker, true);
             $last_price = $ticker['tick']['bid'];
             $instrument = $ticker['tick']['instrument'];
             $volume = 0;
