@@ -31,7 +31,7 @@ $api->version(['v1','v2'], [], function ($api) {
      * list of instruments, prices etc
     //*/
 
-    $api->get('markemarketsts/', 'Bowhead\Http\Controllers\Markets@getMarketsAction');
+    $api->get('markets/', 'Bowhead\Http\Controllers\Markets@getMarketsAction');
 
     $api->get('market/{id}', 'Bowhead\Http\Controllers\Markets@getMarketAction');
     $api->post('market/', 'Bowhead\Http\Controllers\Markets@postMarketAction\'');
