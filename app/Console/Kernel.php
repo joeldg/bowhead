@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
+        Commands\CcxtRunnerCommand::class,
         Commands\BitfinexWebsocketCommand::class,
         Commands\CoinbaseWebsocketCommand::class,
         Commands\OandaStreamCommand::class,

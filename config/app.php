@@ -164,6 +164,8 @@ return [
         Illuminate\View\ViewServiceProvider::class,
 
         Dingo\Api\Provider\LaravelServiceProvider::class,
+        Krlove\EloquentModelGenerator\Provider\GeneratorServiceProvider::class,
+        Orangehill\Iseed\IseedServiceProvider::class,
 
         /*
          * Package Service Providers...
@@ -178,7 +180,8 @@ return [
         // Bowhead\Providers\BroadcastServiceProvider::class,
         Bowhead\Providers\EventServiceProvider::class,
         Bowhead\Providers\RouteServiceProvider::class,
-
+        Way\Generators\GeneratorsServiceProvider::class,
+        Xethron\MigrationsGenerator\MigrationsGeneratorServiceProvider::class,
     ],
 
     /*

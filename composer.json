@@ -13,14 +13,17 @@
         "dingo/api": "1.0.x@dev",
         "elasticsearch/elasticsearch": "^5.2",
         "guzzlehttp/guzzle": "^6.2",
+        "krlove/eloquent-model-generator": "^1.2",
         "laravel/framework": "5.4.*",
         "laravel/tinker": "~1.0",
+        "orangehill/iseed": "^2.5",
         "php-ai/php-ml": "^0.4.1",
         "predis/predis": "^1.1",
         "ratchet/pawl": "^0.2.3",
         "sentry/sentry-laravel": "^0.7.0",
         "tymon/jwt-auth": "^0.5.12",
-        "webpatser/laravel-uuid": "^2.0"
+        "webpatser/laravel-uuid": "^2.0",
+        "xethron/migrations-generator": "^2.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
