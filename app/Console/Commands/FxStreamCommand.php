@@ -68,7 +68,7 @@ class FxStreamCommand extends Command
                 $ticker['tick']['bid'] = round(((float) $fx->Bid + (float) $fx->Ask) / 2, 5);
                 $ticker['tick']['instrument'] = $symbolt;
 
-                $this->markOHLC(json_encode($ticker));
+                $this->markOHLC($ticker);
 
                 $ins = $ticker['tick']['instrument'];
                 $curr[$ins] = $ticker['tick']['bid'];
