@@ -4,6 +4,11 @@
  * User: joeldg
  * Date: 12/21/17
  * Time: 9:22 PM
+ *
+ * This command updaes the bh_ohlcvs and bh_tickers tables, additionally it can repop the exchanges and pairs data
+ * to repopulate everything call with --update, if there are any new ones to add, this will add them.
+ * It does not handle deletions, so. beware of that.
+ *
  */
 namespace Bowhead\Console\Commands;
 
@@ -53,7 +58,7 @@ class CcxtRunnerCommand extends Command
      *
      * @var string
      */
-    protected $description = 'The Fx stream processor.';
+    protected $description = 'CCXT runner, this gets data for exchanges we select.';
 
     /**
      * @param $size
