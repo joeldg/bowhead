@@ -5,6 +5,8 @@ Currently refactorng all of the code to use models for the database, ccxt for do
 
 
 # bowhead
+[![Gitter](https://badges.gitter.im/ccxt-dev/ccxt.svg)](https://gitter.im/bowhead-bot/Lobby)
+
 a REST-API and console-based cryptocurrency trading bot boilerplate and framework
 Written by Joel De Gan, 2017
 
