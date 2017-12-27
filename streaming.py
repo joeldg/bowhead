@@ -20,26 +20,28 @@ from optparse import OptionParser
 def connect_to_stream():
 
     """
-    Environment                 Description 
-    fxTrade (Live)              The live (real money) environment 
-    fxTrade Practice (Demo)     The demo (simulated money) environment 
+    Environment                 Description
+    fxTrade (Live)              The live (real money) environment
+    fxTrade Practice (Demo)     The demo (simulated money) environment
     """
 
     dotenv.load()
 
-    domainDict = { 'live' : 'api-fxtrade.oanda.com',
-               'demo' : 'api-fxpractice.oanda.com' }
+    domainDict = {
+        'live' : 'stream-fxtrade.oanda.com',
+        'demo' : 'stream-fxpractice.oanda.com'
+    }
 
-    # Replace the following variables with your personal values 
-    environment = "demo" # Replace this 'live' if you wish to connect to the live environment 
-    domain = domainDict[environment] 
+    # Replace the following variables with your personal values
+    environment = "demo" # Replace this 'live' if you wish to connect to the live environment
+    domain = domainDict[environment]
     access_token = os.environ.get('OANDA_TOKEN')
     account_id = os.environ.get('OANDA_ACCOUNT')
-    instruments = 'USD_JPY,EUR_USD,AUD_USD,EUR_GBP,USD_CAD,USD_CHF,USD_MXN,USD_TRY,USD_CNH,NZD_USD' 
+    instruments = 'USD_JPY,EUR_USD,AUD_USD,EUR_GBP,USD_CAD,USD_CHF,USD_MXN,USD_TRY,USD_CNH,NZD_USD'
 
     try:
         s = requests.Session()
-        url = "https://" + domain + "/v3/accounts/" + account_id + "/pricing"
+        url = "https://" + domain + "/v3/accounts/" + account_id + "/pricing/stream"
         headers = {'Authorization' : 'Bearer ' + access_token,
                    # 'X-Accept-Datetime-Format' : 'unix'
                   }
@@ -50,7 +52,7 @@ def connect_to_stream():
         return resp
     except Exception as e:
         s.close()
-        print("Caught exception when connecting to stream\n" + str(e)) 
+        print("Caught exception when connecting to stream\n" + str(e))
 
 def demo(displayHeartbeat):
     response = connect_to_stream()
@@ -74,7 +76,7 @@ def demo(displayHeartbeat):
 def main():
     usage = "usage: %prog [options]"
     parser = OptionParser(usage)
-    parser.add_option("-b", "--displayHeartBeat", dest = "verbose", action = "store_true", 
+    parser.add_option("-b", "--displayHeartBeat", dest = "verbose", action = "store_true",
                         help = "Display HeartBeat in streaming data")
     displayHeartbeat = False
 
