@@ -174,7 +174,7 @@ trait Mapper
     public function mapperAccounts($source, $data)
     {
        switch ($source) {
-           case 'Whateclub':
+           case 'Whaleclub':
                $instance = new Whaleclub('BTC/USD');
                break;
            case 'OneBroker':
