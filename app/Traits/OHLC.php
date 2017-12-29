@@ -57,7 +57,7 @@ trait OHLC
         $timeid = date("YmdHi", strtotime($timeid));
 
         $last1m = \DB::table('bowhead_ohlc_1m')->select(DB::raw('MAX(timeid) AS timeid'))
-            ->where('instrument', $bf_pair)
+            ->where('instrument', $instrument)
             ->get();
 
         foreach ($last1m as $last1) {
@@ -70,7 +70,7 @@ trait OHLC
             /* Get High and Low from ticker data for insertion */
             $last1timeids = date("YmdHis", strtotime(date("YmdHi", strtotime("-1 minutes", strtotime("now")))));
             $accum1ma = \DB::table('bowhead_ohlc_tick')->select(DB::raw('MAX(high) as high, MIN(low) as low'))
-                ->where('instrument', $bf_pair)
+                ->where('instrument', $instrument)
                 ->where('timeid', '>=', $last1timeids)
                 ->where('timeid', '<=', ($last1timeids + 59))
                 ->get();
@@ -83,7 +83,7 @@ trait OHLC
 
             /* Get Open price from ticker data and last minute */
             $accum1mb = \DB::table('bowhead_ohlc_tick')->select(DB::raw('open AS open'))
-                ->where('instrument', $bf_pair)
+                ->where('instrument', $instrument)
                 ->where('timeid', '>=', $last1timeids)
                 ->where('timeid', '<=', ($last1timeids + 59))
                 ->limit(1)
@@ -95,7 +95,7 @@ trait OHLC
 
             /* Get close price from ticker data and last minute */
             $accum1mc = \DB::table('bowhead_ohlc_tick')->select(DB::raw('close AS close'))
-                ->where('instrument', $bf_pair)
+                ->where('instrument', $instrument)
                 ->where('timeid', '>=', $last1timeids)
                 ->where('timeid', '<=', ($last1timeids + 59))
                 ->orderBy('ctime', 'desc')
@@ -131,7 +131,7 @@ trait OHLC
         $low5 = null;
 
         $last5m = \DB::table('bowhead_ohlc_5m')->select(DB::raw('MAX(timeid) AS timeid'))
-            ->where('instrument', $bf_pair)
+            ->where('instrument', $instrument)
             ->get();
         foreach ($last5m as $last5) {
             $last5timeid = $last5->timeid;
@@ -141,7 +141,7 @@ trait OHLC
             /* Get High and Low from 1m data for insertion */
             $last5timeids = date("YmdHi", strtotime("-5 minutes", strtotime("now")));
             $accum5ma = \DB::table('bowhead_ohlc_1m')->select(DB::raw('MAX(high) as high, MIN(low) as low'))
-                ->where('instrument', $bf_pair)
+                ->where('instrument', $instrument)
                 ->where('timeid', '>=', $last5timeids)
                 ->where('timeid', '<=', ($timeid))
                 ->get();
@@ -153,7 +153,7 @@ trait OHLC
 
             /* Get Open price from 1m data and last 5 minutes */
             $accum5mb = \DB::table('bowhead_ohlc_1m')->select(DB::raw('*'))
-                ->where('instrument', $bf_pair)
+                ->where('instrument', $instrument)
                 ->where('timeid', '>=', $last5timeids)
                 ->where('timeid', '<=', ($timeid))
                 ->limit(1)
@@ -164,7 +164,7 @@ trait OHLC
 
             /* Get Close price from 1m data and last 5 minutes */
             $accum5mc = \DB::table('bowhead_ohlc_1m')->select(DB::raw('*'))
-                ->where('instrument', $bf_pair)
+                ->where('instrument', $instrument)
                 ->where('timeid', '>=', $last5timeids)
                 ->where('timeid', '<=', ($timeid))
                 ->orderBy('ctime', 'desc')
@@ -195,7 +195,7 @@ trait OHLC
         $low15 = null;
 
         $last15m = \DB::table('bowhead_ohlc_15m')->select(DB::raw('MAX(timeid) AS timeid'))
-            ->where('instrument', $bf_pair)
+            ->where('instrument', $instrument)
             ->get();
         foreach ($last15m as $last15) {
             $last15timeid = $last15->timeid;
@@ -205,7 +205,7 @@ trait OHLC
             /* Get High and Low from 5m data for insertion */
             $last15timeids = date("YmdHi", strtotime("-15 minutes", strtotime("now")));
             $accum15ma = \DB::table('bowhead_ohlc_5m')->select(DB::raw('MAX(high) as high, MIN(low) as low'))
-                ->where('instrument', $bf_pair)
+                ->where('instrument', $instrument)
                 ->where('timeid', '>=', $last15timeids)
                 ->where('timeid', '<=', ($timeid))
                 ->get();
@@ -217,7 +217,7 @@ trait OHLC
 
             /* Get Open price from 5m data and last 15 minutes */
             $accum15mb = \DB::table('bowhead_ohlc_5m')->select(DB::raw('*'))
-                ->where('instrument', $bf_pair)
+                ->where('instrument', $instrument)
                 ->where('timeid', '>=', $last15timeids)
                 ->where('timeid', '<=', ($timeid))
                 ->limit(1)
@@ -228,7 +228,7 @@ trait OHLC
 
             /* Get Close price from 5m data and last 15 minutes */
             $accum15mc = \DB::table('bowhead_ohlc_5m')->select(DB::raw('*'))
-                ->where('instrument', $bf_pair)
+                ->where('instrument', $instrument)
                 ->where('timeid', '>=', $last15timeids)
                 ->where('timeid', '<=', ($timeid))
                 ->orderBy('ctime', 'desc')
@@ -259,7 +259,7 @@ trait OHLC
         $low30 = null;
 
         $last30m = \DB::table('bowhead_ohlc_30m')->select(DB::raw('MAX(timeid) AS timeid'))
-            ->where('instrument', $bf_pair)
+            ->where('instrument', $instrument)
             ->get();
         foreach ($last30m as $last30) {
             $last30timeid = $last30->timeid;
@@ -269,7 +269,7 @@ trait OHLC
             /* Get High and Low from 15m data for insertion */
             $last30timeids = date("YmdHi", strtotime("-30 minutes", strtotime("now")));
             $accum30ma = \DB::table('bowhead_ohlc_15m')->select(DB::raw('MAX(high) as high, MIN(low) as low'))
-                ->where('instrument', $bf_pair)
+                ->where('instrument', $instrument)
                 ->where('timeid', '>=', $last30timeids)
                 ->where('timeid', '<=', ($timeid))
                 ->get();
@@ -281,7 +281,7 @@ trait OHLC
 
             /* Get Open price from 15m data and last 30 minutes */
             $accum30mb = \DB::table('bowhead_ohlc_15m')->select(DB::raw('*'))
-                ->where('instrument', $bf_pair)
+                ->where('instrument', $instrument)
                 ->where('timeid', '>=', $last30timeids)
                 ->where('timeid', '<=', ($timeid))
                 ->limit(1)
@@ -292,7 +292,7 @@ trait OHLC
 
             /* Get Close price from 15m data and last 30 minutes */
             $accum30mc = \DB::table('bowhead_ohlc_15m')->select(DB::raw('*'))
-                ->where('instrument', $bf_pair)
+                ->where('instrument', $instrument)
                 ->where('timeid', '>=', $last30timeids)
                 ->where('timeid', '<=', ($timeid))
                 ->orderBy('ctime', 'desc')
@@ -323,7 +323,7 @@ trait OHLC
         $low60 = null;
 
         $last60m = \DB::table('bowhead_ohlc_1h')->select(DB::raw('MAX(timeid) AS timeid'))
-            ->where('instrument', $bf_pair)
+            ->where('instrument', $instrument)
             ->get();
         foreach ($last60m as $last60) {
             $last60timeid = $last60->timeid;
@@ -333,7 +333,7 @@ trait OHLC
             /* Get High and Low from 30m data for insertion */
             $last60timeids = date("YmdHi", strtotime("-60 minutes", strtotime("now")));
             $accum60ma = \DB::table('bowhead_ohlc_30m')->select(DB::raw('MAX(high) as high, MIN(low) as low'))
-                ->where('instrument', $bf_pair)
+                ->where('instrument', $instrument)
                 ->where('timeid', '>=', $last60timeids)
                 ->where('timeid', '<=', ($timeid))
                 ->get();
@@ -345,7 +345,7 @@ trait OHLC
 
             /* Get Open price from 30m data and last 60 minutes */
             $accum60mb = \DB::table('bowhead_ohlc_30m')->select(DB::raw('*'))
-                ->where('instrument', $bf_pair)
+                ->where('instrument', $instrument)
                 ->where('timeid', '>=', $last60timeids)
                 ->where('timeid', '<=', ($timeid))
                 ->limit(1)
@@ -356,7 +356,7 @@ trait OHLC
 
             /* Get Close price from 30m data and last 60 minutes */
             $accum60mc = \DB::table('bowhead_ohlc_30m')->select(DB::raw('*'))
-                ->where('instrument', $bf_pair)
+                ->where('instrument', $instrument)
                 ->where('timeid', '>=', $last60timeids)
                 ->where('timeid', '<=', ($timeid))
                 ->orderBy('ctime', 'desc')
@@ -454,10 +454,11 @@ trait OHLC
 	   $ftime = $array['buckettime'];
 	   if ($ptime == null) {
 	      $ptime = $ftime;
+		  echo "Starting at $array[ctime]...\n";
 	   } else {
 	 	/** Check for missing periods **/
 		if ($periodSize == '1m') {
-		   $variance = (int)75;
+		   $variance = (int)80;
 		} else if ($periodSize == '5m') {
 		   $variance = (int)375;
 		} else if ($periodSize == '15m') {
@@ -472,8 +473,8 @@ trait OHLC
 		#echo 'Past Time is '.$ptime.' and current time is '.$ftime."\n";
 		$periodcheck = $ptime - $ftime;
 		if ((int)$periodcheck > (int)$variance) {
-		echo 'YOU HAVE '.$validperiods.' PERIODS OF VALID PRICE DATA OUT OF '.$limit.'. Please ensure price sync is running and wait for additional data to be logged before trying again. Additionally you could use a smaller time period if available.'."\n";
-		die();
+			echo 'YOU HAVE '.$validperiods.' PERIODS OF VALID PRICE DATA OUT OF '.$limit.'. Please ensure price sync is running and wait for additional data to be logged before trying again. Additionally you could use a smaller time period if available.'."\n";
+			die();
 		}	
 		$validperiods++;
 	   }
