@@ -27,6 +27,7 @@ def connect_to_stream():
 
     dotenv.load()
 
+
     domainDict = {
         'live' : 'stream-fxtrade.oanda.com',
         'demo' : 'stream-fxpractice.oanda.com'
@@ -67,11 +68,10 @@ def demo(displayHeartbeat):
             except Exception as e:
                 print("Caught exception when converting message into json\n" + str(e))
                 return
-
-            if "prices" in msg or displayHeartbeat:
+            
+            if (msg['type'] == "PRICE") or displayHeartbeat:
                 fifo=open('quotes','a')
                 fifo.write(line + "\n")
-                #print(line)
 
 def main():
     usage = "usage: %prog [options]"
