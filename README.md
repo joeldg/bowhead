@@ -30,7 +30,12 @@ having to deal with some potential tax issues (depending on the country you live
 #### Companion article
 This project has a companion article which walks you through how to set it up and walks you through 
 setting up your first strategy and running it on [Whaleclub](https://whaleclub.co/join/tn6uE) 
-and on [1Broker](https://1broker.com/?r=21434), which you will need accounts on both.
+and on [1Broker](https://1broker.com/?r=21434), which you will need accounts on both. 
+Additionally the following are recommended exchnges:
+* [Binance](https://www.binance.com/?ref=12325729)
+* [Coinbase/GDAX](https://www.coinbase.com/join/51950ca286c21b84dd000021)
+* [Kraken](https://www.kraken.com)
+* [CEX](https://cex.io/r/0/joeldg/0/)
  
 The companion article is on Medum and is:
 
