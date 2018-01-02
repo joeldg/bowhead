@@ -1,5 +1,5 @@
 UPDATE FOR BITFINIX ISSUES (12/23/2017):
-ADDED IN https://github.com/ccxt/ccxt instead of custom wrapping all the api's
+ADDED IN https://github.com/ccxt/ccxt and Coinigy, instead of custom wrapping all the api's
 Currently refactorng all of the code to use models for the database, ccxt for doing buys and sells and
  so forth. Adding in data seeds so strategies can be used right off the bat.
 
@@ -36,6 +36,8 @@ Additionally the following are recommended exchnges:
 * [Coinbase/GDAX](https://www.coinbase.com/join/51950ca286c21b84dd000021)
 * [Kraken](https://www.kraken.com)
 * [CEX](https://cex.io/r/0/joeldg/0/)
+
+Usage of [Coinigy](https://www.coinigy.com/?r=32d4c701)(free 1-month trial) also is being added.
  
 The companion article is on Medum and is:
 
