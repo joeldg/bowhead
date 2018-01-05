@@ -14,6 +14,6 @@ class bh_configs extends Model
     /**
      * @var array
      */
-    protected $fillable = ['item', 'value'];
+    protected $fillable = ['item', 'value', 'exchange_id'];
 
 }

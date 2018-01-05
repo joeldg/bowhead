@@ -9,10 +9,14 @@
  * to repopulate everything call with --update, if there are any new ones to add, this will add them.
  * It does not handle deletions, so. beware of that.
  *
+ * For FX data
+ * https://www.truefx.com/dev/data/TrueFX_MarketDataWebAPI_DeveloperGuide.pdf
+ *
  */
 namespace Bowhead\Console\Commands;
 
 use Bowhead\Models;
+use Bowhead\Traits;
 use Bowhead\Util\Console;
 use Carbon\Carbon;
 use ccxt\BaseError;
@@ -24,7 +28,7 @@ use Bowhead\Traits\Config;
 
 class CcxtRunnerCommand extends Command
 {
-    use Config;
+    use Config, Traits\DataCcxt;
 
     /**
      * @var array
@@ -101,6 +105,14 @@ class CcxtRunnerCommand extends Command
      */
     public function handle()
     {
+        /**
+         *  DON'T RUN IF WE ARE CURRENTLY USING COINIGY
+         *  This is typically because coinigy does not require that Bowhead have API keys and API secrets..
+         */
+        if ($this->bowhead_config('COINIGY') == 1){
+            exit(1);
+        }
+
         ini_set('memory_limit','256M');
         $console = new Console();
         stream_set_blocking(STDIN, 0);
@@ -111,7 +123,7 @@ class CcxtRunnerCommand extends Command
 
         if ($verbose){$this->profile(__LINE__);}
 
-        $trading_pairs = $this->bowhead_config('trading_pairs');
+        $trading_pairs = $this->bowhead_config('PAIRS');
         if (empty($trading_pairs)) {
             echo $console->colorize("
                 You need to add in some trading pairs in the bh_configs table.
@@ -122,8 +134,9 @@ class CcxtRunnerCommand extends Command
         $trading_pairs = explode(',', $trading_pairs);
 
         /**
+         *   FOR TESTING
          *   USER PASSED IN --update TO REFRESH ALL THE EXCHANGES AND PAIRS
-         *   ( this is not necessary to do very often )
+         *   ( this is not necessary for you to do -- almost ever --, do it from the web interface )
          */
         if ($update_all) {
             /**
@@ -147,7 +160,7 @@ class CcxtRunnerCommand extends Command
              *  Update the list of pairs available to trade
              *  We skip ones with use=-1 as they are either broke or have issues.
              */
-            $ex_loop = Models\bh_exchanges::where('use', '=>', 0)->get();
+            $ex_loop = Models\bh_exchanges::where('ccxt',1)->whereIn('id', explode(",", $this->bowhead_config('EXCHANGES')))->get();
             foreach ($ex_loop as $ex) {
                 $exid = $ex->id;
                 $exchange = $ex->exchange;
@@ -176,13 +189,17 @@ class CcxtRunnerCommand extends Command
          *  Do class instantiation here to avoid doing it in the loop which
          *  adds to memory on each loop for the system try/catch
          */
-        $ex_loop = Models\bh_exchanges::where('use', '>', 0)->get();
+        $ex_loop = Models\bh_exchanges::where('ccxt',1)->whereIn('id', explode(",", $this->bowhead_config('EXCHANGES')))->get();
         foreach ($ex_loop as $ex) {
             $exid = $ex->id;
             $exchange = $ex->exchange;
             $classname = '\ccxt\\' . $exchange;
             ${'bh_'.$exchange} = new $classname(array (
                 'enableRateLimit' => true,
+                'apiKey'   => Config::bowhead_config(strtoupper($exchange) .'_APIKEY'),
+                'secret'   => Config::bowhead_config(strtoupper($exchange) .'_SECRET'),
+                'uid'      => Config::bowhead_config(strtoupper($exchange) .'_UID'),
+                'password' => Config::bowhead_config(strtoupper($exchange) .'_PASSWORD')
             ));
             if ($verbose){echo "$exchange mem: ". $this->profile(__LINE__);}
         }
@@ -198,7 +215,7 @@ class CcxtRunnerCommand extends Command
                 echo "QUIT detected...";
                 return null;
             }
-            $ex_loop = Models\bh_exchanges::where('use', '>', 0)->get();
+            $ex_loop = Models\bh_exchanges::where('ccxt',1)->whereIn('id', explode(",", $this->bowhead_config('EXCHANGES')))->get();
             foreach ($ex_loop as $ex) {
                 $exid = $ex->id;
                 $exchange = $ex->exchange;
@@ -208,6 +225,10 @@ class CcxtRunnerCommand extends Command
                     $classname = '\ccxt\\' . $exchange;
                     ${'bh_'.$exchange} = new $classname(array (
                         'enableRateLimit' => true,
+                        'apiKey'   => Config::bowhead_config(strtoupper($exchange) .'_APIKEY'),
+                        'secret'   => Config::bowhead_config(strtoupper($exchange) .'_SECRET'),
+                        'uid'      => Config::bowhead_config(strtoupper($exchange) .'_UID'),
+                        'password' => Config::bowhead_config(strtoupper($exchange) .'_PASSWORD')
                     ));
                     $class = ${'bh_' . $exchange};
                 }

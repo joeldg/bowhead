@@ -17,5 +17,6 @@ class DatabaseSeeder extends Seeder
         $this->call(BhConfigsTableSeeder::class);
         $this->call(BhOhlcvsTableSeeder::class);
         $this->call(BhTickersTableSeeder::class);
+        $this->call(BhPopularExchangesTableSeeder::class);
     }
 }

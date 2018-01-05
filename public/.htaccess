@@ -1,3 +1,8 @@
+# the default .htpasswd in the root directory is user "bowhead" with password "admin"
+#AuthType Basic
+#AuthName "Password Required"
+#AuthUserFile ../.htpasswd
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews

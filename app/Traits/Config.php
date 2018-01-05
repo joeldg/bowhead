@@ -10,12 +10,30 @@ namespace Bowhead\Traits;
 
 use Bowhead\Models;
 
+/**
+ * Class Config
+ * @package Bowhead\Traits
+ */
 trait Config
 {
-    public function bowhead_config($val) {
+    /**
+     * @param $val
+     *
+     * @return bool|\Illuminate\Database\Eloquent\Model|mixed|null|string|static
+     */
+    public static function bowhead_config($val) {
         try {
-            $ret = Models\bh_configs::where('item', '=', $val)->first();
-            return $ret->value;
+            $ret = Models\bh_configs::firstorcreate(['item' => $val]); #Models\bh_configs::where('item', '=', $val)->first();
+            if (empty($ret->value)){
+                $ret = env($val);
+                if (!empty($ret)){
+                    return $ret;
+                } else {
+                    return false;
+                }
+            } else {
+                return $ret->value;
+            }
         } catch (\Exception $e) {
             return false;
         }

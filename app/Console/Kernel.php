@@ -41,7 +41,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('bowhead:fx_stream')->withoutOverlapping()->everyMinute();
+        #$schedule->command('bowhead:fx_stream')->withoutOverlapping()->everyMinute();
         $schedule->command('bowhead:ccxt_runner')->withoutOverlapping()->everyMinute();
     }
 
