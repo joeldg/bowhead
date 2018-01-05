@@ -1,7 +1,11 @@
-UPDATE FOR BITFINIX ISSUES (12/23/2017):
-ADDED IN https://github.com/ccxt/ccxt and Coinigy, instead of custom wrapping all the api's
-Currently refactorng all of the code to use models for the database, ccxt for doing buys and sells and
- so forth. Adding in data seeds so strategies can be used right off the bat.
+UPDATE (1/04/2018):
+Major changes:
+ ADDED IN https://github.com/ccxt/ccxt and Coinigy both, 
+ Refactored all of the code to use models for the database for the new exchange system, added a web configurator to set up the new system with either Coinigy or ccxt and then selecting Exchanges and Currency pairs where Crypto is the full focus.
+ 
+ A lot of this is to support Machine Learning enhancements. Forex will still be possible but only on WC for now.. Swapping to use the truefx.com websocket for Forex.
+ 
+ Hold onto your hats.. still have massive changes to come, will be creating a video series.
 
 
 # bowhead
