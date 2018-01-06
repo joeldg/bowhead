@@ -1,6 +1,9 @@
 UPDATE (1/06/2018):
 MORE Major changes:
  Things are MORE THAN LIKELY BROKE because of the overhaul. I will need some Coinigy testers as I have built a web configuration for Bowhead where you select Coinigy (easy start) or CCXT and then the exchanges and select your trading pairs.
+ 
+ HIT UP THE Gitter below and I will be posting info there.
+ 
  Also, working on an official Docker pull for this off DockerHub and a companion YouTube tutorial for setting it up in on both Mac and AWS (sorry windows folk). If you have sent me an email, I am sorry... I can answer 150 emails about Bowhead or I can get new features for Bowhead done, but not both. I am trying to go through the issues here and am going to clean them all out once the newer web interface is wrapped. (yes.. a web interface!!!!)
 
 
