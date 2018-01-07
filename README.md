@@ -1,11 +1,10 @@
-UPDATE (1/04/2018):
-Major changes:
- ADDED IN https://github.com/ccxt/ccxt and Coinigy both, 
- Refactored all of the code to use models for the database for the new exchange system, added a web configurator to set up the new system with either Coinigy or ccxt and then selecting Exchanges and Currency pairs where Crypto is the full focus.
+UPDATE (1/06/2018):
+MORE Major changes:
+ Things are MORE THAN LIKELY BROKE because of the overhaul. I will need some Coinigy testers as I have built a web configuration for Bowhead where you select Coinigy (easy start) or CCXT and then the exchanges and select your trading pairs.
  
- A lot of this is to support Machine Learning enhancements. Forex will still be possible but only on WC for now.. Swapping to use the truefx.com websocket for Forex.
+ HIT UP THE Gitter below and I will be posting info there.
  
- Hold onto your hats.. still have massive changes to come, will be creating a video series.
+ Also, working on an official Docker pull for this off DockerHub and a companion YouTube tutorial for setting it up in on both Mac and AWS (sorry windows folk). If you have sent me an email, I am sorry... I can answer 150 emails about Bowhead or I can get new features for Bowhead done, but not both. I am trying to go through the issues here and am going to clean them all out once the newer web interface is wrapped. (yes.. a web interface!!!!)
 
 
 # bowhead
