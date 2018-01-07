@@ -4,6 +4,7 @@ namespace Bowhead\Http\Controllers;
 
 use Bowhead\Models;
 use Bowhead\Traits;
+use Bowhead\Util\Coinigy;
 use GuzzleHttp as Coingy_GuzzleHttp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +33,7 @@ class Controller extends BaseController
         $vars['notice'] = '';
 
         if (!Schema::hasTable('bh_configs')) {
-            foreach(DB::select('SHOW TABLES') as $table) {
+            foreach(DB::select("SHOW TABLES LIKE 'bh%'") as $table) {
                 $table_array = get_object_vars($table);
                 Schema::drop($table_array[key($table_array)]);
             }
@@ -119,6 +120,18 @@ class Controller extends BaseController
                 return view('setup', ['notice' => $response['err_msg'], 'coinigy_error' => 1]);
             }
 
+            $coinigy_accounts = [];
+            $coinigy = new Coinigy();
+            $accounts = $coinigy->accounts();
+            $accounts = $accounts['data'];
+            foreach($accounts as $acct) {
+                $coinigy_accounts[] = $acct['exch_name'];
+                $exhange_model = Models\bh_exchanges::where('exchange','=', $acct['exch_name'])->get()->first();
+                if ($exhange_model) {
+                    $preferred[$exhange_model->id] =$exhange_model->url;
+                }
+            }
+
             $exchdata = [];
             foreach ($response['data'] as $exch) {
                 $exhange_model = Models\bh_exchanges::where('exchange','=', $exch['exch_name'])->get()->first();
@@ -140,6 +153,7 @@ class Controller extends BaseController
             }
         }
 
+        $vars['coinigy_accounts'] = $coinigy_accounts ?? '';
         $vars['exhange_links'] = $exhange_links;
         $vars['exchanges'] = $exchdata;
         $vars['notice'] = '';

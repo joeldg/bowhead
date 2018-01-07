@@ -101,6 +101,17 @@
     <li>optional: set up exchange api keys</li>
     </p>
 
+    <div>
+    @if($datasource == 'Coinigy')
+        @if(!empty($coinigy_accounts))
+            <strong style="color: #2ca02c">CURRENT ACTIVE COINIGY ACCOUNTS:</strong> {{ join(', ', $coinigy_accounts) }} <br>
+            <i>your coinigy accounts have been selected automatically below, along with suggested exchanges.</i>
+        @else
+            <strong style="color: #133d55">CURRENT COINIGY ACCOUNTS:</strong> *** you have no active accounts on Coinigy, sign up and add some with the links below ***<br>
+        @endif
+    @endif
+    </div>
+
     <p>Select the exchanges you want to use. <br></bre><i>If you are unsure, go with the defaults.</i><br>
         Selecting ones not used can slow things down, and you will need to add in accounts for them.</p>
     <p><strong>TIP: Use this page to open up windows to the various exchanges and sign up accounts to use.</strong></p>
