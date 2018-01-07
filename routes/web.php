@@ -20,5 +20,6 @@ Route::get('/setup2', 'Controller@setup2b'); // in case someone right-clicks and
 Route::post('/setup3', 'Controller@setup3');
 Route::post('/setup4', 'Controller@setup4');
 Route::post('/exchanges', 'Controller@exchanges');
+Route::get('/exchanges', 'Controller@exchanges');
 Route::post('/main', 'Main@main');
 Route::get('/main', 'Main@main');

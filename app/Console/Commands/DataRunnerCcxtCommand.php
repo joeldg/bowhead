@@ -26,7 +26,7 @@ use Illuminate\Console\Command;
 use ccxt\AuthenticationError;
 use Bowhead\Traits\Config;
 
-class CcxtRunnerCommand extends Command
+class DataRunnerCcxtCommand extends Command
 {
     use Config, Traits\DataCcxt;
 
@@ -40,12 +40,12 @@ class CcxtRunnerCommand extends Command
      *
      * @var string
      */
-    protected $name = 'bowhead:ccxt_runner';
+    protected $name = 'bowhead:datarunner_ccxt';
 
     /**
      * @var string
      */
-    protected $signature = 'bowhead:ccxt_runner {--update} {--v} {--vv}';
+    protected $signature = 'bowhead:datarunner_ccxt {--update} {--v} {--vv}';
 
     /**
      * @var int

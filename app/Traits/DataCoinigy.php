@@ -10,6 +10,7 @@ namespace Bowhead\Traits;
 
 use GuzzleHttp as Coingy_GuzzleHttp;
 use Bowhead\Models as Coingy_models;
+use Bowhead\Util\Coinigy;
 
 /**
  * Class Coinigy
