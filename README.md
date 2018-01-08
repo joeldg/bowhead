@@ -3,7 +3,7 @@ UPDATE (1/08/2018): PREVIEW of the official Docker container, with partial web c
 ```
 docker pull joeldg/bowhead
 
-docker run -d joeldg/bowhead
+docker run -d -p 8080:8080 joeldg/bowhead
 ```
 Then you will need to wait, it takes a while for it to fire up because of the composer update it needs to do.
 When it comes up, it will be on port http://{IP}:8080/setup
