@@ -1,6 +1,13 @@
 UPDATE (1/08/2018): PREVIEW of the official Docker container, with partial web configuration. Container is using Alpine Linux+Nginx+PHP7.1 with MariaDB and Redis. ... Still a work in progress, but, it will connect to coinigy -or- your ccxt accounts and pull ticker data into the database on the pairs you select in the web interface. 
 
-```docker pull joeldg/bowhead```
+```
+docker pull joeldg/bowhead
+
+docker run -d joeldg/bowhead
+```
+Then you will need to wait, it takes a while for it to fire up because of the composer update it needs to do.
+When it comes up, it will be on port http://{IP}:8080/setup
+
 via https://github.com/joeldg/bh_docker
 Any feedback, good or bad, hit up the gitter link below.
 
