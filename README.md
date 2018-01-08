@@ -1,5 +1,10 @@
-UPDATE (1/06/2018):
-MORE Major changes:
+UPDATE (1/08/2018): Official Docker container, with partial web configuration.
+
+```docker pull joeldg/bowhead```
+via https://github.com/joeldg/bh_docker
+
+
+1/06/2018 - MORE Major changes:
  Things are MORE THAN LIKELY BROKE because of the overhaul. I will need some Coinigy testers as I have built a web configuration for Bowhead where you select Coinigy (easy start) or CCXT and then the exchanges and select your trading pairs.
  
  HIT UP THE Gitter below and I will be posting info there.
