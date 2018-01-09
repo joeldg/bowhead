@@ -1,5 +1,18 @@
-UPDATE (1/06/2018):
-MORE Major changes:
+UPDATE (1/08/2018): PREVIEW of the official Docker container, with partial web configuration. Container is using Alpine Linux+Nginx+PHP7.1 with MariaDB and Redis. ... Still a work in progress, but, it will connect to coinigy -or- your ccxt accounts and pull ticker data into the database on the pairs you select in the web interface. 
+
+```
+docker pull joeldg/bowhead
+
+docker run -d -p 8080:8080 joeldg/bowhead
+```
+Then you will need to wait, it takes a while for it to fire up because of the composer update it needs to do.
+When it comes up, it will be on port http://{IP}:8080/setup
+
+via https://github.com/joeldg/bh_docker
+Any feedback, good or bad, hit up the gitter link below.
+
+
+1/06/2018 - MORE Major changes:
  Things are MORE THAN LIKELY BROKE because of the overhaul. I will need some Coinigy testers as I have built a web configuration for Bowhead where you select Coinigy (easy start) or CCXT and then the exchanges and select your trading pairs.
  
  HIT UP THE Gitter below and I will be posting info there.
