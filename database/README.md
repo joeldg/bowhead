@@ -7,7 +7,9 @@ SELECT * FROM pg_available_extensions where name ='timescaledb';
 ```
 and you should see one row returned with timescaledb, if you do not see that then you may need to restart postgres.
 
-Now:
+Now see how the configurator does this:
+https://github.com/joeldg/bowhead/blob/master/app/Http/Controllers/Controller.php#L50-L66
+
 Run
 ```
 php artisan migrate:reset
