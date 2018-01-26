@@ -1,4 +1,4 @@
-#Postgres Timescale support
+# Postgres Timescale support
 Bowhead supports the Postgres Timescale (http://timescale.com) extension.
 
 After you have installed Timescale and verify it is installed by running
