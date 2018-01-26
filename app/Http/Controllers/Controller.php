@@ -31,16 +31,46 @@ class Controller extends BaseController
     {
         $vars = [];
         $vars['notice'] = '';
+        $notice = '';
 
         if (!Schema::hasTable('bh_configs')) {
-            foreach(DB::select("SHOW TABLES LIKE 'bh%'") as $table) {
-                $table_array = get_object_vars($table);
-                Schema::drop($table_array[key($table_array)]);
+            $connection_name = config('database.default');
+            if ($connection_name == 'mysql') {
+                foreach (@DB::select("SHOW TABLES LIKE 'bh%'") as $table) {
+                    $table_array = get_object_vars($table);
+                    Schema::drop($table_array[key($table_array)]);
+                }
             }
             Artisan::call('migrate:refresh');
+
+            /**
+             *  We need to check for pgsql and Timescale
+             */
+            if ($connection_name == 'pgsql') {
+                $test = DB::select("SELECT * FROM pg_available_extensions where name ='timescaledb'");
+                if(!empty($test)) {
+                    DB::select("DROP TABLE IF EXISTS bh_ohlcvs_old, bh_tickers_old CASCADE");
+
+                    DB::select("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE");
+                    DB::select("ALTER TABLE bh_ohlcvs RENAME TO bh_ohlcvs_old");
+                    DB::select("CREATE TABLE bh_ohlcvs (LIKE bh_ohlcvs_old INCLUDING DEFAULTS INCLUDING CONSTRAINTS EXCLUDING INDEXES)");
+                    DB::select("ALTER TABLE bh_tickers RENAME TO bh_tickers_old");
+                    DB::select("CREATE TABLE bh_tickers (LIKE bh_tickers_old INCLUDING DEFAULTS INCLUDING CONSTRAINTS EXCLUDING INDEXES)");
+
+                    DB::select("DROP TABLE IF EXISTS bh_ohlcvs_old, bh_tickers_old CASCADE");
+
+                    DB::select("SELECT create_hypertable('bh_ohlcvs', 'created_at')");
+                    DB::select("SELECT create_hypertable('bh_tickers', 'created_at')");
+                    $notice .= "Postgres Timescale hypertables created and will be used for timeseries data.<br>\n";
+                } else {
+                    $notice .= "Postgres Timescale not installed. You won't be able to make use of hypertables.<br>\n";
+                }
+            }
+
+
             Artisan::call('db:seed');
 
-            $notice = "Noticed missing tables: Ran migrate:refresh and db:seed (you should only see this message once)\n";
+            $notice .= "Noticed missing tables: Ran migrate:refresh and db:seed (you should only see this message once)<br>\n";
             $vars['notice'] = $notice;
         }
 
@@ -229,7 +259,9 @@ class Controller extends BaseController
             }
         }
         Models\bh_configs::updateOrCreate(['item' => 'PAIRS'], ['value' => join(',', $selected)]);
-        Models\bh_configs::updateOrCreate(['item' => 'SETUP'], ['value' => 1]);
+
+        // why is postgres having an issue with this?
+        #Models\bh_configs::updateOrCreate(['item' => 'SETUP'], ['value' => 1]);
 
         # * * * * * /usr/local/bin//php /Users/joeldg/Projects/bowhead/artisan schedule:run >> /dev/null 2>&1
         $php_binary = (defined('PHP_BINARY') && PHP_BINARY ? PHP_BINDIR .'/' : '') ."php";

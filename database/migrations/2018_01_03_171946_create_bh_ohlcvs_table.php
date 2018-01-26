@@ -18,7 +18,7 @@ class CreateBhOhlcvsTable extends Migration {
 			$table->integer('bh_exchanges_id')->nullable();
 			$table->string('symbol', 90)->nullable();
 			$table->bigInteger('timestamp')->nullable();
-			$table->dateTime('datetime')->nullable()->index('datetime');
+			$table->dateTime('datetime')->nullable()->index('datetime_ohlcvs');
 			$table->float('open', 10, 0)->nullable();
 			$table->float('high', 10, 0)->nullable();
 			$table->float('low', 10, 0)->nullable();
@@ -26,7 +26,7 @@ class CreateBhOhlcvsTable extends Migration {
 			$table->float('volume', 10, 0)->nullable();
 			$table->timestamps();
 			$table->softDeletes();
-			$table->unique(['bh_exchanges_id','symbol','timestamp'], 'bh_exchanges_id');
+			$table->unique(['bh_exchanges_id','symbol','timestamp'], 'bh_exchanges_id_ohlcvs');
 		});
 	}
 

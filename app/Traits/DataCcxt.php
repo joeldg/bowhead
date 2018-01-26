@@ -14,6 +14,16 @@ use ccxt\BaseError;
 
 trait DataCcxt
 {
+    public function get_accounts()
+    {
+        # TODO + balance
+    }
+
+    public function update_accounts()
+    {
+        # TODO
+    }
+
     public function get_exchanges()
     {
         $exchanges = \ccxt\Exchange::$exchanges;
@@ -110,7 +120,7 @@ trait DataCcxt
         }
     }
 
-    public function get_recent($exchange, $market)
+    public function get_history($exchange, $market)
     {
         //fetchOrderBook, fetchOHLCV (fetchTrades)
     }
@@ -129,7 +139,7 @@ trait DataCcxt
         return $class->fetchTicker($market);
     }
 
-    public function createOrder()
+    public function create_order()
     {
         // createLimitBuyOrder, createLimitSellOrder
         // createMarketBuyOrder, createMarketSellOrder
@@ -139,5 +149,24 @@ trait DataCcxt
         // deposit, withdraw
     }
 
+    public function cancel_order()
+    {
+        # TODO
+    }
+
+    public function get_orders()
+    {
+        # TODO - both open and closed/history
+    }
+
+    public function update_orders()
+    {
+        # TODO
+    }
+
+    public function get_orderbook()
+    {
+        #TODO - bids/asks
+    }
 
 }

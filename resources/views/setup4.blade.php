@@ -8,93 +8,34 @@
     <title>Bowhead</title>
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
+    <link href="/css/camphor.scss" rel="stylesheet" type="text/css">
+    <link href="/css/button.scss" rel="stylesheet" type="text/css">
+    <link href="/css/lit.css" rel="stylesheet" type="text/css">
 
     <!-- Styles -->
     <style>
-        html, body {
-            background-color: #fff;
-            color: #636b6f;
-            font-family: 'Raleway', sans-serif;
-            font-weight: 100;
-            height: 100vh;
-            margin: 50;
+        body {
+            font-family: Camphor, Open Sans, Segoe UI, sans-serif;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #8eb4cb;
         }
-
-        .full-height {
-            height: 100vh;
-        }
-
-        .flex-center {
-            align-items: center;
-            display: flex;
-            justify-content: center;
-        }
-
-        .position-ref {
-            position: relative;
-        }
-
-        .top-right {
-            position: absolute;
-            right: 10px;
-            top: 18px;
-        }
-
         .err {
             color: #ff6666;
             padding: 0 25px;
             letter-spacing: .1rem;
         }
-
-        .content {
-            text-align: left;
-            margin: 50;
+        .c {
+            background-color: #f5f5f5;
         }
-        .contentB {
-            text-align: left;
-            margin: 150;
-        }
-
-        .title {
-            font-size: 44px;
-        }
-
-        .links > a {
-            color: #636b6f;
-            padding: 0 25px;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: .1rem;
-            text-decoration: none;
-            text-transform: uppercase;
-        }
-
-        a:hover + div {
-            display: block;
-        }​
-
-         .m-b-md {
-             margin-bottom: 30px;
-         }
-
-        #container {
-            display: table;
-        }
-
-        #row  {
-            display: table-row;
-        }
-
-        #left, #right, #middle {
-            display: table-cell;
-        }
+        a { color: #FF0000; }
     </style>
 </head>
 <body>
-<div class="content">
+<div class="c">
     <p class="err">{{ $notice }}</p>
-    <b class="title">Bowhead setup final:</b>
+    <h1>Bowhead setup final:</h1>
     <p>
         <br>We are done with the basic setup, your database is set up and seeded with data and you selected your data sources.
         <br>Now we need to finalize and get the schedules set up to keep your data up to date, we do this with the schedule runner
@@ -111,7 +52,7 @@
     <form method="post" action="exchanges">
 
         <input type="hidden" name="_token" value="{{ csrf_token() }}">
-        <input type="submit" value="continue to enter exchange api key">
+        <input class="btn primary" type="submit" value="continue to enter exchange api key">
     </form>
 
     <br><br>

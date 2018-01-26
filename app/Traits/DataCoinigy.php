@@ -23,7 +23,7 @@ trait DataCoinigy
 {
     protected $txtime;
 
-    public function call_coinigy($endpoint='exchanges', $data=null)
+    private function call_coinigy($endpoint='exchanges', $data=null)
     {
         $base_url = 'https://api.coinigy.com/api/v1/';
         $headers['X-API-KEY']    = Config::bowhead_config('COINIGY_API');
@@ -49,6 +49,16 @@ trait DataCoinigy
             return ['error'=>$reason];
         }
 
+    }
+
+    public function get_accounts()
+    {
+        return $this->call_coinigy('accounts');
+    }
+
+    public function update_accounts()
+    {
+        return $this->call_coinigy('accounts');
     }
 
     public function get_exchanges()
@@ -98,10 +108,10 @@ trait DataCoinigy
         return 1;
     }
 
-    public function get_recent($exchange, $market)
+    public function get_history($exchange, $market)
     {
         //https://coinigy.docs.apiary.io/#reference/market-data/market-data/data-{type:all}
-        return $this->call_coinigy('data', ['exchange_code' => $exchange, 'exchange_market'=>$market, 'type'=>'all']);
+        return $this->call_coinigy('data', ['exchange_code' => $exchange, 'exchange_market'=>$market, 'type'=>'history']);
     }
 
     public function get_ticker($exchange, $market)
@@ -119,14 +129,28 @@ trait DataCoinigy
      *  8 - Limit (Margin)
      *  9 - Stop Limit (Margin)
      */
-    public function createOrder()
+    public function create_order()
     {
-
+        # TODO
     }
 
-
-    public function get_accounts()
+    public function cancel_order()
     {
-        return $this->call_coinigy('accounts');
+        # TODO
+    }
+
+    public function get_orders()
+    {
+        #TODO - both open and closed/history
+    }
+
+    public function update_orders()
+    {
+        # TODO
+    }
+
+    public function get_orderbook()
+    {
+        #TODO - bids/asks
     }
 }
