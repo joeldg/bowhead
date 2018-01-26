@@ -15,9 +15,9 @@ class CreateBhExchangeBalancesTable extends Migration {
 		Schema::create('bh_exchange_balances', function(Blueprint $table)
 		{
 			$table->increments('id');
-			$table->integer('auth_id')->nullable()->index('auth_id');
-			$table->string('exch_name')->nullable()->index('exch_name');
-			$table->integer('exch_id')->nullable()->index('exch_id');
+			$table->integer('auth_id')->nullable()->index('auth_id1');
+			$table->string('exch_name')->nullable()->index('exch_name1');
+			$table->integer('exch_id')->nullable()->index('exch_id1');
 			$table->string('balance_curr_code', 80)->nullable();
 			$table->float('balance_amount_avail', 10, 0)->nullable();
 			$table->float('balance_amount_held', 10, 0)->nullable();

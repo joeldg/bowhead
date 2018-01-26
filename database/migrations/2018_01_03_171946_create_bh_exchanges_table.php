@@ -25,7 +25,7 @@ class CreateBhExchangesTable extends Migration {
 			$table->boolean('coinigy_balance_enabled')->nullable()->default(0)->index('balance_enabled');
 			$table->boolean('hasFetchTickers')->nullable()->default(0);
 			$table->boolean('hasFetchOHLCV')->nullable()->default(0);
-			$table->boolean('use')->nullable()->default(0);
+			$table->integer('use')->nullable()->default(0);
 			$table->text('data', 65535)->nullable();
 			$table->string('url', 200)->nullable();
 			$table->string('url_api', 200)->nullable();

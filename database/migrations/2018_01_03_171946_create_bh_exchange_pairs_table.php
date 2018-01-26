@@ -20,7 +20,7 @@ class CreateBhExchangePairsTable extends Migration {
 			$table->string('exchange_pair', 90)->nullable();
 			$table->timestamps();
 			$table->softDeletes();
-			$table->index(['exchange_id','market_id','exchange_pair'], 'exchange_id');
+			$table->index(['exchange_id','market_id','exchange_pair'], 'exchange_id2');
 		});
 	}
 

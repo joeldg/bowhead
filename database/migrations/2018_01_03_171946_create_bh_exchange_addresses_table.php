@@ -15,7 +15,7 @@ class CreateBhExchangeAddressesTable extends Migration {
 		Schema::create('bh_exchange_addresses', function(Blueprint $table)
 		{
 			$table->increments('id');
-			$table->integer('exchange_id')->nullable()->index('exchange_id');
+			$table->integer('exchange_id')->nullable()->index('exchange_id1');
 			$table->string('currency', 24)->nullable();
 			$table->string('address')->nullable();
 			$table->timestamps();
