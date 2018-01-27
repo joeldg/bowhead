@@ -75,7 +75,7 @@
                 @endforeach
             </table>
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
-            &nbsp;&nbsp;&nbsp;<input type="submit" class="btn primary" value="Save keys and continue to enter - don't lose your work">
+            &nbsp;&nbsp;&nbsp;<input type="submit" class="btn" value="Save keys and continue to enter - don't lose your work">
         </form>
 <br><br><br>
         <form method="get" action="main">

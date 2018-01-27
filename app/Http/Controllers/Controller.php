@@ -32,6 +32,7 @@ class Controller extends BaseController
         $vars = [];
         $vars['notice'] = '';
         $notice = '';
+        $tscale = 0;
 
         if (!Schema::hasTable('bh_configs')) {
             $connection_name = config('database.default');
@@ -45,6 +46,11 @@ class Controller extends BaseController
 
             /**
              *  We need to check for pgsql and Timescale
+             *  Timescale requires that the timestamp column is the primary key for a table and cannot index across
+             *  partitions so we need to strip out the indexes, make the auto-increment fields SERIAL fiels but not
+             *  PRIMARY fields and then create the hypertables.
+             *
+             *  Complicated, yes, worth it, most definitely.
              */
             if ($connection_name == 'pgsql') {
                 $test = DB::select("SELECT * FROM pg_available_extensions where name ='timescaledb'");
@@ -54,13 +60,19 @@ class Controller extends BaseController
                     DB::select("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE");
                     DB::select("ALTER TABLE bh_ohlcvs RENAME TO bh_ohlcvs_old");
                     DB::select("CREATE TABLE bh_ohlcvs (LIKE bh_ohlcvs_old INCLUDING DEFAULTS INCLUDING CONSTRAINTS EXCLUDING INDEXES)");
+                    DB::select("ALTER TABLE bh_ohlcvs DROP COLUMN id");
+                    DB::select("ALTER TABLE bh_ohlcvs ADD COLUMN id SERIAL");
+
                     DB::select("ALTER TABLE bh_tickers RENAME TO bh_tickers_old");
                     DB::select("CREATE TABLE bh_tickers (LIKE bh_tickers_old INCLUDING DEFAULTS INCLUDING CONSTRAINTS EXCLUDING INDEXES)");
+                    DB::select("ALTER TABLE bh_tickers DROP COLUMN id");
+                    DB::select("ALTER TABLE bh_tickers ADD COLUMN id SERIAL");
 
                     DB::select("DROP TABLE IF EXISTS bh_ohlcvs_old, bh_tickers_old CASCADE");
 
                     DB::select("SELECT create_hypertable('bh_ohlcvs', 'created_at')");
                     DB::select("SELECT create_hypertable('bh_tickers', 'created_at')");
+                    $tscale = 1;
                     $notice .= "Postgres Timescale hypertables created and will be used for timeseries data.<br>\n";
                 } else {
                     $notice .= "Postgres Timescale not installed. You won't be able to make use of hypertables.<br>\n";
@@ -73,6 +85,8 @@ class Controller extends BaseController
             $notice .= "Noticed missing tables: Ran migrate:refresh and db:seed (you should only see this message once)<br>\n";
             $vars['notice'] = $notice;
         }
+
+        Models\bh_configs::updateOrCreate(['item' => 'TIMESCALEDB'], ['value' => $tscale]);
 
         $configs = new Models\bh_configs();
         $coinigy = Traits\Config::bowhead_config('COINIGY');

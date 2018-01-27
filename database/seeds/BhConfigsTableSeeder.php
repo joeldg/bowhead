@@ -90,8 +90,8 @@ class BhConfigsTableSeeder extends Seeder
             7 => 
             array (
                 'id' => 8,
-                'item' => 'RESERVED3',
-                'value' => NULL,
+                'item' => 'TIMESCALEDB',
+                'value' => 0,
                 'exchange_id' => NULL,
                 'updated_at' => '2018-01-03 19:18:00',
                 'created_at' => '2018-01-03 19:18:00',
