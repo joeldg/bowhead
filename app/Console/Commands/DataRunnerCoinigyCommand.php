@@ -79,7 +79,7 @@ class DataRunnerCoinigyCommand extends Command
                     $tick['low']             = $ticker['low_trade'];
                     $tick['bid']             = $ticker['bid'];
                     $tick['ask']             = $ticker['ask'];
-                    $tick['baseVolume']      = $ticker['current_volume'];
+                    $tick['basevolume']      = $ticker['current_volume'];
                     $tick['last']            = $ticker['last_trade'];
                     $tick['symbol']          = $ticker['market'];
                     $tick['timestamp']       = time();
@@ -87,7 +87,7 @@ class DataRunnerCoinigyCommand extends Command
                     $tick['datetime']        = $ticker['timestamp'];
                     $tickers_model           = new Models\bh_tickers();
                     $tickers_model::updateOrCreate(
-                        ['bh_exchanges_id' => $bh_exchanges[$code], 'symbol' => $pair, 'timestamp' => $tick['timestamp']]
+                        ['bh_exchanges_id' => $tick['bh_exchanges_id'], 'symbol' => $pair, 'timestamp' => $tick['timestamp']]
                         , $tick);
                 }
             }

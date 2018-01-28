@@ -31,8 +31,8 @@ class CreateBhTickersTable extends Migration {
 			$table->float('change', 10, 0)->nullable();
 			$table->float('percentage', 10, 0)->nullable();
 			$table->float('average', 10, 0)->nullable();
-			$table->float('baseVolume', 10, 0)->nullable();
-			$table->float('quoteVolume', 10, 0)->nullable();
+			$table->float('basevolume', 10, 0)->nullable();
+			$table->float('quotevolume', 10, 0)->nullable();
 			$table->timestamps();
 			$table->softDeletes();
 			$table->unique(['bh_exchanges_id','symbol','timestamp'], 'bh_exchanges_id_23');

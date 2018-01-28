@@ -243,7 +243,13 @@ class DataRunnerCcxtCommand extends Command
                             $tick['timestamp'] = (intval($tick['timestamp']) / 1000);
                             $tick['bh_exchanges_id'] = $exid;
                             $tick['datetime'] = $dt[0];
+
+                            $tick['basevolume'] = $tick['baseVolume'];
+                            unset($tick['baseVolume']);
+                            $tick['quotevolume'] = $tick['quoteVolume'];
+                            unset($tick['quoteVolume']);
                             $tickers_model = new Models\bh_tickers();
+
                             $tickers_model::updateOrCreate(
                                 ['bh_exchanges_id' => $exid, 'symbol' => $pair, 'timestamp' => $tick['timestamp']]
                                 , $tick);
