@@ -173,14 +173,14 @@ trait CandleMap
      * in this case, we would not enter a trade.
      *
      */
-    public function candle_value($data)
+    public function candle_value($data=null)
     {
         if (empty($data)) {
             return ['err'=>'no data'];
         }
         $candles = new Candles();
         $candle_data = $candles->allCandles('BTC/USD', $data); // pair only mattters if data empty
-        $ret['indecision'] = 0;
+        $ret['indecision'] = 0;     
 
         $price_reversal_bear_keys     = array_keys($this->price_reversal['bear']);
         $price_reversal_bull_keys     = array_keys($this->price_reversal['bull']);
@@ -189,12 +189,15 @@ trait CandleMap
         $counter_purpose_bear_keys    = array_keys($this->counter_purpose['bear']);
         $counter_purpose_bull_keys    = array_keys($this->counter_purpose['bull']);
 
+        if(!isset($candle_data['current'])){
+          return null;
+        }
         foreach($candle_data['current'] as $key => $data) {
             /** current indecision is bad */
             if (in_array($key, $this->indecision)) {
                 $ret['indecision'] = $ret['indecision'] + 100;
             }
-;
+
             /** price reversal */
             if (in_array($key, $price_reversal_bear_keys)){
                 $ret['reverse_bear'] = $ret['reverse_bear'] ?? 0;
@@ -208,12 +211,12 @@ trait CandleMap
             }
 
             /** price continuation */
-            if (in_array($key, $price_continuation_bull_keys) || in_array($key, $counter_purpose_bear_keys)){
+            if (in_array($key, $price_continuation_bull_keys)){
                 $ret['continue_bull'] = $ret['continue_bull'] ?? 0;
                 $ret['continue_bull'] = ($this->price_continuation['bull'][$key] > $ret['continue_bull'] ? $this->price_continuation['bull'][$key] : $ret['continue_bull']);
                 $ret['continue_bull_total'] =  (@$ret['continue_bull_total'] + $this->price_continuation['bull'][$key] ?? $this->price_continuation['bull'][$key]);
             }
-            if (in_array($key, $price_continuation_bear_keys) || in_array($key, $counter_purpose_bull_keys)){
+            if (in_array($key, $price_continuation_bear_keys)){
                 $ret['continue_bear'] = $ret['continue_bear'] ?? 0;
                 $ret['continue_bear'] = ($this->price_continuation['bear'][$key] > $ret['continue_bear'] ? $this->price_continuation['bear'][$key] : $ret['continue_bear']);
                 $ret['continue_bear_total'] =  (@$ret['continue_bear_total'] + $this->price_continuation['bear'][$key] ?? $this->price_continuation['bear'][$key]);
@@ -222,6 +225,7 @@ trait CandleMap
         $return['current'] = $ret;
         $ret = [];
         $ret['indecision'] = 0;
+       
         foreach($candle_data['recently'] as $key => $data) {
             /** recent indecision is okay, if we are done with it */
             if (in_array($key, $this->indecision)) {
@@ -240,12 +244,12 @@ trait CandleMap
             }
 
             /** price continuation */
-            if (in_array($key, $price_continuation_bull_keys) || in_array($key, $counter_purpose_bear_keys)){
+            if (in_array($key, $price_continuation_bull_keys)){
                 $ret['continue_bull'] = $ret['continue_bull'] ?? 0;
                 $ret['continue_bull'] = ($this->price_continuation['bull'][$key] > $ret['continue_bull'] ? $this->price_continuation['bull'][$key] : $ret['continue_bull']);
                 $ret['continue_bull_total'] =  (@$ret['continue_bull_total'] + $this->price_continuation['bull'][$key] ?? $this->price_continuation['bull'][$key]);
             }
-            if (in_array($key, $price_continuation_bear_keys) || in_array($key, $counter_purpose_bull_keys)){
+            if (in_array($key, $price_continuation_bear_keys)){
                 $ret['continue_bear'] = $ret['continue_bear'] ?? 0;
                 $ret['continue_bear'] = ($this->price_continuation['bear'][$key] > $ret['continue_bear'] ? $this->price_continuation['bear'][$key] : $ret['continue_bear']);
                 $ret['continue_bear_total'] =  (@$ret['continue_bear_total'] + $this->price_continuation['bear'][$key] ?? $this->price_continuation['bear'][$key]);
