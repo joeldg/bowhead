@@ -11,11 +11,11 @@ CURRENT BOWHEAD ROADMAP:
 6. Finish the settings page with auto-update options, paper/live trading options, alerts and so on.
 7. Create docs section with links.
 8. Create stats and reports page (show trades, +/-, exchange fees breakdown, arb breakdown and strategy comparisons)
---THEN--
+    --THEN--
 9. Revisit each command and fix.
 10. Revisit all three Bowhead articles and rewrite new versions.
 11. Create cloud-based Bowhead data service, so that Bowhead can get historical and realtime data from ALL exchanges with no API keys. Only provide API keys for those you wish to trade on.
-   * Update Bowhead to use data service
+    * Update Bowhead to use data service
 12. Create YouTube video series on Bowhead, strategies etc.
 13. Get some sleep
 
