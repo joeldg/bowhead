@@ -154,7 +154,7 @@ trait OHLC
                 ROUND((CEILING(UNIX_TIMESTAMP(`created_at`) / $timeslice) * $timeslice)) AS buckettime,
                 round(AVG(bid),11) AS avgbid,
                 round(AVG(ask),11) AS avgask,
-                AVG(basevVolume) AS avgvolume
+                AVG(baseVolume) AS avgvolume
               FROM bh_tickers
               WHERE symbol = '$pair'
               AND UNIX_TIMESTAMP(`created_at`) > ($offset)
