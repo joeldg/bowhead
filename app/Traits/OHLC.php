@@ -18,17 +18,10 @@ trait OHLC
      */
     public function organizePairData($datas, $limit=999)
     {
-
-        $ret = [];
-        $ret = [];
-        $ret = [];
-        $ret = [];
-        $ret = [];
-        $ret = [];
-
         $ret = array();
         foreach ($datas as $data) {
-            $ret[$data->bh_exchanges_id]['date'][]   = $data->buckettime;
+            $ret[$data->bh_exchanges_id]['timestamp'][]   = $data->buckettime;
+            $ret[$data->bh_exchanges_id]['date'][]   = gmdate("j-M-y", $data->buckettime);
             $ret[$data->bh_exchanges_id]['low'][]    = $data->low;
             $ret[$data->bh_exchanges_id]['high'][]   = $data->high;
             $ret[$data->bh_exchanges_id]['open'][]   = $data->open;
