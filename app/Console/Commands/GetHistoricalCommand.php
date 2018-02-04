@@ -3,17 +3,17 @@
  * Created by PhpStorm.
  * User: joeldg
  * Date: 4/12/17
- * Time: 4:20 PM
+ * Time: 4:20 PM.
  */
 
 namespace Bowhead\Console\Commands;
 
-use Bowhead\Console\Kernel;
-use Illuminate\Console\Command;
 use DateInterval;
 use DateTime;
+use Illuminate\Console\Command;
 
-class GetHistoricalCommand extends Command {
+class GetHistoricalCommand extends Command
+{
     /**
      * @var string
      */
@@ -33,39 +33,39 @@ class GetHistoricalCommand extends Command {
         $console = new \Bowhead\Util\Console();
         $ledger = new \Bowhead\Util\Coinbase();
 
-        #$data = $ledger->get_instruments();
+        //$data = $ledger->get_instruments();
         $pairs = explode(',', env('PAIRS'));
 
-        $date_list = array();
+        $date_list = [];
         $day1 = '2017-04-18';
         $diff1Day = new DateInterval('P1D');
         $day = new DateTime('2017-05-01 00:00:00');
-        while($day1 <= date('Y-m-d')) {
-            $day1 = date("Y-m-d", $day->getTimestamp());
+        while ($day1 <= date('Y-m-d')) {
+            $day1 = date('Y-m-d', $day->getTimestamp());
             $day->add($diff1Day);
-            $date_list[$day1] = date("Y-m-d", $day->getTimestamp());
+            $date_list[$day1] = date('Y-m-d', $day->getTimestamp());
         }
 
         foreach ($pairs as $pair) {
             foreach ($date_list as $key => $val) {
                 sleep(1); // otherwise will get rate limited
                 echo "Doing $pair $key / $val\n";
-                $linkpart = "?start=" . $key . "T00:00:00.000Z&&end=" . $val . "T00:00:00.000Z&&granularity=3600";
+                $linkpart = '?start='.$key.'T00:00:00.000Z&&end='.$val.'T00:00:00.000Z&&granularity=3600';
                 $data = $util->get_endpoint('rates', null, $linkpart, $pair);
-                #echo "got $pair: $key / $val\n";
+                //echo "got $pair: $key / $val\n";
                 foreach ($data as $d) {
                     if (!is_array($d)) {
                         continue;
                     }
-                    $insert = array(
-                        'pair' => $pair,
+                    $insert = [
+                        'pair'       => $pair,
                         'buckettime' => date('Y-m-d H;i:s', $d[0]),
-                        'low' => $d[1],
-                        'high' => $d[2],
-                        'open' => $d[3],
-                        'close' => $d[4],
-                        'volume' => $d[5]
-                    );
+                        'low'        => $d[1],
+                        'high'       => $d[2],
+                        'open'       => $d[3],
+                        'close'      => $d[4],
+                        'volume'     => $d[5],
+                    ];
                     $count = \DB::table('historical')->select('*')
                         ->where('pair', $pair)
                         ->where('buckettime', date('Y-m-d H;i:s', $d[0]))
@@ -76,6 +76,5 @@ class GetHistoricalCommand extends Command {
                 }
             }
         }
-
     }
 }

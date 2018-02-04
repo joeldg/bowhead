@@ -1,27 +1,20 @@
 <?php
+
 namespace Bowhead\Console\Commands;
 
-use Bowhead\Console\Kernel;
 use Bowhead\Traits\OHLC;
 use Bowhead\Traits\Signals;
 use Bowhead\Traits\Strategies;
-use Illuminate\Console\Command;
 use Bowhead\Util;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use AndreasGlaser\PPC\PPC;
 use Symfony\Component\Console\Input\InputArgument;
 
 /**
- * Class ExampleCommand
- * @package Bowhead\Console\Commands
- *
- *          SEE COMMENTS AT THE BOTTOM TO SEE WHERE TO ADD YOUR OWN
- *          CONDITIONS FOR A TEST.
- *
+ * Class ExampleCommand.
  */
-class TestStrategiesCommand extends Command {
-
+class TestStrategiesCommand extends Command
+{
     use Signals, Strategies, OHLC; // add our traits
 
     /**
@@ -38,7 +31,6 @@ class TestStrategiesCommand extends Command {
      */
     protected $description = 'Testing out the strategies we have.';
 
-
     /**
      * @param $val
      *
@@ -46,9 +38,16 @@ class TestStrategiesCommand extends Command {
      */
     public function doColor($val)
     {
-        if ($val == 0){ return 'none'; }
-        if ($val == 1){ return 'green'; }
-        if ($val == -1){ return 'magenta'; }
+        if ($val == 0) {
+            return 'none';
+        }
+        if ($val == 1) {
+            return 'green';
+        }
+        if ($val == -1) {
+            return 'magenta';
+        }
+
         return 'none';
     }
 
@@ -58,7 +57,7 @@ class TestStrategiesCommand extends Command {
      *
      * @return array|string
      */
-    public function compileSignals($arr, $retarr=false)
+    public function compileSignals($arr, $retarr = false)
     {
         $console = new Util\Console();
         $pos = $neg = 0;
@@ -66,32 +65,33 @@ class TestStrategiesCommand extends Command {
             $pos += ($a > 0 ? 1 : 0);
             $neg += ($a < 0 ? 1 : 0);
         }
-        #$pos = $console->colorize($pos,'green');
-        #$neg = $console->colorize($neg,'red');
+        //$pos = $console->colorize($pos,'green');
+        //$neg = $console->colorize($neg,'red');
 
         if ($retarr) {
             return ['pos'=>$pos, 'neg' => $neg];
         }
+
         return "$pos/-$neg";
     }
 
     /**
-     *  updateDb
+     *  updateDb.
      */
     public function updateDb()
     {
         $wc = new Util\Whaleclub();
-        $ids = \DB::table('bowhead_strategy')->select(DB::raw('unix_timestamp(ctime) AS stime, position_id, pair'))->whereNull('profit')->get();;
+        $ids = \DB::table('bowhead_strategy')->select(DB::raw('unix_timestamp(ctime) AS stime, position_id, pair'))->whereNull('profit')->get();
         if (!empty($ids)) {
             foreach ($ids as $id) {
                 $modify = 301;
                 if ($id->stime + $modify < time()) {
-                    echo "\nUPDATING " . $id->position_id;
+                    echo "\nUPDATING ".$id->position_id;
                     $order = $wc->positionGet($id->position_id);
                     $err = $order['body']['error'] ?? null;
                     if ($err) {
                         print_r($order);
-                        #\DB::table('bowhead_strategy')->where('position_id', $id->position_id)->update(['profit' => '0', 'state' => 'error', 'close_reason' => 'error']);
+                        //\DB::table('bowhead_strategy')->where('position_id', $id->position_id)->update(['profit' => '0', 'state' => 'error', 'close_reason' => 'error']);
                         return;
                     }
                     $prof = $order['profit'] ?? null;
@@ -124,7 +124,7 @@ class TestStrategiesCommand extends Command {
      *
      * @return array|bool
      */
-    public function createPosition($instrument, $direction, $strategy, $pos=0, $neg=0, $size=2, $lev=200)
+    public function createPosition($instrument, $direction, $strategy, $pos = 0, $neg = 0, $size = 2, $lev = 200)
     {
         $cache_key = "wc::demo::$instrument:$direction:$strategy";
         if (\Cache::has($cache_key)) {
@@ -132,7 +132,7 @@ class TestStrategiesCommand extends Command {
         }
 
         $wc = new Util\Whaleclub();
-        $price = $wc->getPrice(str_replace('_','-',$instrument));
+        $price = $wc->getPrice(str_replace('_', '-', $instrument));
         $price = $price['price'];
 
         /**
@@ -144,35 +144,28 @@ class TestStrategiesCommand extends Command {
          *  (0.87881*(30/200))/100 = 0.00131821500000000000
          *
          *  30% of price with 200 leverage = ((30/200)/100) = 0.15%
-         *
          */
-        $tp = round(( $price * (20/$lev) ) / 100, 5);
-        $sl = round(( $price * (10/$lev) ) / 100, 5);
-        $amt_takeprofit = ($direction == 'long' ? ((float)$price + $tp) : ((float)$price - $tp));
-        $amt_stoploss   = ($direction == 'long' ? ((float)$price - $sl) : ((float)$price + $sl));
+        $tp = round(($price * (20 / $lev)) / 100, 5);
+        $sl = round(($price * (10 / $lev)) / 100, 5);
+        $amt_takeprofit = ($direction == 'long' ? ((float) $price + $tp) : ((float) $price - $tp));
+        $amt_stoploss = ($direction == 'long' ? ((float) $price - $sl) : ((float) $price + $sl));
 
         $order = [
-             'direction'   => $direction
-            ,'leverage'    => $lev
-            ,'market'      => str_replace('_','-',$instrument)
-            ,'take_profit' => $amt_takeprofit
-            ,'stop_loss'   => $amt_stoploss
-            ,'entry_price' => $entry ?? null
-            ,'size'        => $size
+             'direction'   => $direction, 'leverage'    => $lev, 'market'      => str_replace('_', '-', $instrument), 'take_profit' => $amt_takeprofit, 'stop_loss'   => $amt_stoploss, 'entry_price' => $entry ?? null, 'size'        => $size,
         ];
-        $info =  $wc->positionNew($order);
+        $info = $wc->positionNew($order);
         print_r($info);
         $err = $info['error']['code'] ?? null;
-        if (isset($info['error']) && is_array($info['error'])){
+        if (isset($info['error']) && is_array($info['error'])) {
             return ['error' => $err];
         }
         $insert['position_id'] = $info['id'];
-        $insert['pair']        = "$instrument";
-        $insert['direction']   = "$direction";
-        $insert['signalpos']   = $pos;
-        $insert['signalneg']   = $neg;
-        $insert['strategy']    = "$strategy";
-        $insert['state']       = 'active';
+        $insert['pair'] = "$instrument";
+        $insert['direction'] = "$direction";
+        $insert['signalpos'] = $pos;
+        $insert['signalneg'] = $neg;
+        $insert['strategy'] = "$strategy";
+        $insert['state'] = 'active';
         \DB::table('bowhead_strategy')->insert($insert);
 
         \Cache::put($cache_key, 1, 301); // at least five minutes
@@ -188,67 +181,68 @@ class TestStrategiesCommand extends Command {
      */
     public function handle()
     {
-        $rundemo     = false;
+        $rundemo = false;
         $pair_strategies = $recentprices = [];
         if ($rundemo = $this->argument('runtest')) {
-            $this->info("Running the DEMO test of all the strategies:");
+            $this->info('Running the DEMO test of all the strategies:');
         }
 
         echo "PRESS 'q' TO QUIT AND CLOSE ALL POSITIONS\n\n\n";
         stream_set_blocking(STDIN, 0);
 
-        $console     = new \Bowhead\Util\Console();
-		
-		$instruments = ['USD_JPY','NZD_USD','EUR_GBP','USD_CAD','USD_CNH','USD_MXN','USD_TRY','AUD_USD','EUR_USD','USD_CHF'];
-        $leverages   = [222,200,100,88,50,25,1];
+        $console = new \Bowhead\Util\Console();
+
+        $instruments = ['USD_JPY', 'NZD_USD', 'EUR_GBP', 'USD_CAD', 'USD_CNH', 'USD_MXN', 'USD_TRY', 'AUD_USD', 'EUR_USD', 'USD_CHF'];
+        $leverages = [222, 200, 100, 88, 50, 25, 1];
         /**
          *  $strategies = $this->strategies_all = every single strategy.
          *  $strategies = $this->strategies_1m  = only 1 minute periods
          *  $strategies = $this->strategies_5m  = only 5 minute periods
          *  $strategies = $this->strategies_15m = fifteen minute periods
          *  $strategies = $this->strategies_30m = thirty
-         *  $strategies = $this->strategies_1h  = sixty
+         *  $strategies = $this->strategies_1h  = sixty.
          */
         $strategies = $this->strategies_1m;
 
-        foreach($strategies as $k => $strategy) {
-            $strategies[$k] = str_replace('bowhead_','',$strategy);
+        foreach ($strategies as $k => $strategy) {
+            $strategies[$k] = str_replace('bowhead_', '', $strategy);
         }
 
-        while(1) {
+        while (1) {
             if (ord(fgetc(STDIN)) == 113) { // try to catch keypress 'q'
-                echo "QUIT detected...";
-                return null;
+                echo 'QUIT detected...';
+
+                return;
             }
             $recentprices = [];
 
             /**
-             *  GET ALL OUR SIGNALS HERE
+             *  GET ALL OUR SIGNALS HERE.
              */
             $signals = $this->signals(1, false, $instruments); // get the full list
 
-            /**
+            /*
              *  First up we loop through the strategies dynamically run the strategies
              *  using $this->${'strategy'}(param1, param2)
              *  $pair_strategies just has [pair][strategy] = {-1/1/0}
              */
-            foreach($instruments as $instrument) {
+            foreach ($instruments as $instrument) {
                 $recentData = $this->getRecentData($instrument, 220);
                 $recentData_copy = $recentData['close'];
                 $recentprices[$instrument] = array_pop($recentData_copy);
                 $flags = [];
 
                 /**
-                 *  Using $strategies_all from strategies trait
+                 *  Using $strategies_all from strategies trait.
                  */
                 foreach ($strategies as $strategy) {
-                	$function_name = 'bowhead_' . $strategy;
+                    $function_name = 'bowhead_'.$strategy;
                     $flags[$strategy] = $this->$function_name($instrument, $recentData);
                 }
                 $pair_strategies[$instrument] = $flags;
             }
 
-            /**
+            /*
              *   If we want to just view what the strategies
              *   are currently returning in a colored table.
              */
@@ -258,7 +252,7 @@ class TestStrategiesCommand extends Command {
                 $output = '';
                 foreach ($instruments as $instrument) {
                     $comp = $this->compileSignals($signals[$instrument]);
-                    $lines['top'] .= str_pad($instrument . "[$comp]", 17);
+                    $lines['top'] .= str_pad($instrument."[$comp]", 17);
                     foreach ($strategies as $strategy) {
                         if (!isset($lines[$strategy])) {
                             $lines[$strategy] = '';
@@ -267,26 +261,26 @@ class TestStrategiesCommand extends Command {
                         $lines[$strategy] .= $console->colorize(str_pad($strategy, 17), $color);
                     }
                 }
-                echo "\n\n" . $console->colorize(@$lines['top']);
+                echo "\n\n".$console->colorize(@$lines['top']);
                 foreach ($strategies as $strategy) {
-                    echo "\n" . $lines[$strategy];
+                    echo "\n".$lines[$strategy];
                 }
             } else {
-                /**
+                /*
                  *  DO THE ACTUAL TESTS...
                  *  HERE IS WHERE WE CAN BUILD UP CUSTOM STRATEGY TESTS
                  */
                 foreach ($pair_strategies as $pair => $strategies) {
                     $sigs = $this->compileSignals($signals[$pair], 1);
                     foreach ($strategies as $strategy => $flag) {
-                        if ($flag == 0){
+                        if ($flag == 0) {
                             continue; // not a short or a long
                         }
-                        $direction  = ($pair_strategies[$pair][$strategy] > 0 ? 'long' : 'short');
+                        $direction = ($pair_strategies[$pair][$strategy] > 0 ? 'long' : 'short');
                         /**
                          *  Here we determine the leverage based on signals.
                          *  There are only a certain leverage steps we can use
-                         *  so we need to fit into the closest 222,200,100,88,50,25,1
+                         *  so we need to fit into the closest 222,200,100,88,50,25,1.
                          */
                         $lev = 220;
                         $closest = 0;
@@ -300,9 +294,9 @@ class TestStrategiesCommand extends Command {
                         if ($lev < 25) {
                             $lev = 25;
                         }
-                        /** now we have the leverage. */
+                        /* now we have the leverage. */
 
-                        /**
+                        /*
                          *   TODO:      HERE IS WHERE YOU CAN TEST SIGNALS BEFORE YOU CREATE
                          *   TODO:      POSITIONS AND SEND THEM OUT.
                          *   TODO:      YOU CAN REFINE YOUR STRATEGIES HERE FURTHER.
@@ -331,9 +325,5 @@ class TestStrategiesCommand extends Command {
             echo "\nZzzz..";
             sleep(60);
         }
-
-        return null;
     }
-
-
 }

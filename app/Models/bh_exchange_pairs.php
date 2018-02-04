@@ -15,5 +15,4 @@ class bh_exchange_pairs extends Model
      * @var array
      */
     protected $fillable = ['exchange_id', 'market_id', 'exchange_pair'];
-
 }

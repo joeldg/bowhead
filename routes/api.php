@@ -15,8 +15,8 @@ use Illuminate\Http\Request;
 
 $api = app('Dingo\Api\Routing\Router');
 
-$api->version(['v1','v2'], [], function ($api) {
-    /** accounts
+$api->version(['v1', 'v2'], [], function ($api) {
+    /* accounts
      * list accounts + balances, transfers, deposit, withdrawal etc
     //*/
     $api->get('accounts/', '\Bowhead\Http\Controllers\Accounts@getAccountsAction');  // get all accounts
@@ -26,7 +26,7 @@ $api->version(['v1','v2'], [], function ($api) {
     $api->patch('account/{id}', 'Bowhead\Http\Controllers\Accounts@patchAccountAction');
     $api->delete('account/{id}', 'Bowhead\Http\Controllers\Accounts@deleteAccountAction');
 
-    /**
+    /*
      * markets
      * list of instruments, prices etc
     //*/
@@ -39,7 +39,7 @@ $api->version(['v1','v2'], [], function ($api) {
     $api->delete('market/{id}', 'Bowhead\Http\Controllers\Markets@deleteMarketAction\'');
     //*/
 
-    /**
+    /*
      * positions
      * new/open/close/pending/cancel
     //*/
@@ -52,7 +52,7 @@ $api->version(['v1','v2'], [], function ($api) {
     $api->delete('position/{id}', 'Bowhead\Http\Controllers\Positions@deletePositionAction');
     //*/
 
-    /**
+    /*
      * transactions
      * deposits, withdrawls etc.
     //*/
@@ -60,9 +60,8 @@ $api->version(['v1','v2'], [], function ($api) {
     $api->get('transaction/', 'Bowhead\Http\Controllers\Transactions@getTransactionsAction');
     $api->get('transaction/{id}', 'Bowhead\Http\Controllers\Transactions@getTransactionAction');
     //*/
-
 });
 
-#Route::middleware('auth:api')->get('/user', function (Request $request) {
-#    return $request->user();
-#});
+//Route::middleware('auth:api')->get('/user', function (Request $request) {
+//    return $request->user();
+//});

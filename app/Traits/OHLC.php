@@ -3,8 +3,9 @@
  * Created by PhpStorm.
  * User: joeldg
  * Date: 6/26/17
- * Time: 4:03 PM
+ * Time: 4:03 PM.
  */
+
 namespace Bowhead\Traits;
 
 use Illuminate\Support\Facades\DB;
@@ -16,9 +17,8 @@ trait OHLC
      *
      * @return array
      */
-    public function organizePairData($datas, $limit=999)
+    public function organizePairData($datas, $limit = 999)
     {
-
         $ret = [];
         $ret = [];
         $ret = [];
@@ -26,21 +26,22 @@ trait OHLC
         $ret = [];
         $ret = [];
 
-        $ret = array();
+        $ret = [];
         foreach ($datas as $data) {
-            $ret[$data->bh_exchanges_id]['date'][]   = $data->buckettime;
-            $ret[$data->bh_exchanges_id]['low'][]    = $data->low;
-            $ret[$data->bh_exchanges_id]['high'][]   = $data->high;
-            $ret[$data->bh_exchanges_id]['open'][]   = $data->open;
-            $ret[$data->bh_exchanges_id]['close'][]  = $data->close;
+            $ret[$data->bh_exchanges_id]['date'][] = $data->buckettime;
+            $ret[$data->bh_exchanges_id]['low'][] = $data->low;
+            $ret[$data->bh_exchanges_id]['high'][] = $data->high;
+            $ret[$data->bh_exchanges_id]['open'][] = $data->open;
+            $ret[$data->bh_exchanges_id]['close'][] = $data->close;
             $ret[$data->bh_exchanges_id]['volume'][] = $data->volume;
         }
-        foreach($ret as $ex => $opt) {
+        foreach ($ret as $ex => $opt) {
             foreach ($opt as $key => $rettemmp) {
                 $ret[$ex][$key] = array_reverse($rettemmp);
                 $ret[$ex][$key] = array_slice($ret[$ex][$key], 0, $limit, true);
             }
         }
+
         return $ret;
     }
 
@@ -54,7 +55,7 @@ trait OHLC
      *
      * @return array
      */
-    public function getRecentData($pair='BTC/USD', $limit=168, $day_data=false, $hour=12, $periodSize='1m', $returnRS=false)
+    public function getRecentData($pair = 'BTC/USD', $limit = 168, $day_data = false, $hour = 12, $periodSize = '1m', $returnRS = false)
     {
         /**
          *  we need to cache this as many strategies will be
@@ -62,12 +63,12 @@ trait OHLC
          */
         $connection_name = config('database.default');
         $key = 'recent::'.$pair.'::'.$limit."::$day_data::$hour::$periodSize::$connection_name";
-        if(\Cache::has($key)) {
+        if (\Cache::has($key)) {
             //return \Cache::get($key);
         }
 
         $timeslice = 60;
-        switch($periodSize) {
+        switch ($periodSize) {
             case '1m':
                 $timescale = '1 minute';
                 $timeslice = 60;
@@ -106,9 +107,9 @@ trait OHLC
                 break;
         }
         $current_time = time();
-        $offset = ($current_time - ($timeslice * $limit)) -1;
+        $offset = ($current_time - ($timeslice * $limit)) - 1;
 
-        /**
+        /*
          *  The time slicing queries in various databases are done differently.
          *  Postgres supports series() mysql does not, timescale has buckets, the others don't etc.
          *  having support for timescaledb is important for the scale of the project.
@@ -135,7 +136,7 @@ trait OHLC
                     GROUP BY bh_exchanges_id, buckettime 
                     ORDER BY buckettime DESC   
                 "));
-                echo "test:" . $offset;
+                echo 'test:'.$offset;
             } else {
                 // regular psql query
                 // TODO
@@ -170,6 +171,7 @@ trait OHLC
         }
 
         \Cache::put($key, $ret, 2);
+
         return $ret;
     }
 }

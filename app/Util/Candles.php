@@ -3,37 +3,15 @@
  * Created by PhpStorm.
  * User: joeldg
  * Date: 4/14/17
- * Time: 12:57 PM
+ * Time: 12:57 PM.
  */
+
 namespace Bowhead\Util;
 
 use Bowhead\Traits\OHLC;
 
 /**
- * Class Candles
- * @package Bowhead\Util
- *
- *          Stock candles are traditional Japanese price graphs and all the names for candles
- *          are from Japanese military maneuvers and traditional stories, or are words in Japanese such as
- *          Harami meaning 'pregnant'
- *
- *          Candles are NOT specifically buy/sell signals, look them up before you use them.
- *          http://www.investinganswers.com/financial-dictionary
- *          http://www.investopedia.com/dictionary/
- *
- *          use allCandles() below to get a complete candle set on your data window.
- *
- *          Not all possible types of candles are here, many two (tweezers) and single (white soldier etc) candles are
- *          missing from this list, there are TONS of different candles abut this list has what is generally accepted as
- *          the main ones, and this is 100% of the TA-Lib port to PHP.
- *
- *          Examples:
- *
- *          bears: Bearish Engulfing, Dark Cloud cover, Bearish counter attack, Bearish Harami, eveningstar reversal
- *          http://www.candlesticker.com/BearishPatterns.aspx?lang=en
- *
- *          bulls: Bullish Engulfing, Bullish Piercing Pattern, Bullish counter attack, Bullish Harami, Morning Star reversal
- *          http://www.candlesticker.com/BullishPatterns.aspx?lang=en
+ * Class Candles.
  */
 class Candles
 {
@@ -44,7 +22,7 @@ class Candles
      *
      *      Here is all the candles
      */
-    public $candles = array (
+    public $candles = [
         'trader_cdl2crows'              => 'Two Crows',
         'trader_cdl3blackcrows'         => 'Three Black Crows',
         'trader_cdl3inside'             => 'Three Inside Up/Down',
@@ -105,8 +83,8 @@ class Candles
         'trader_cdltristar'             => 'Tristar Pattern',
         'trader_cdlunique3river'        => 'Unique 3 River',
         'trader_cdlupsidegap2crows'     => 'Upside Gap Two Crows',
-        'trader_cdlxsidegap3methods'    => 'Upside/Downside Gap Three Methods'
-    );
+        'trader_cdlxsidegap3methods'    => 'Upside/Downside Gap Three Methods',
+    ];
 
     /**
      * @param string $pair
@@ -125,20 +103,20 @@ class Candles
      *          - current   = candle found in the single most recent
      *          - datafor   = close data surrounding the candle on either side
      */
-    public function allCandles($pair='BTC/USD', $data=null)
+    public function allCandles($pair = 'BTC/USD', $data = null)
     {
-        $ret = array();
+        $ret = [];
         if (empty($data)) {
             $data = $this->getRecentData($pair);
         }
-        foreach($this->candles as $cdlfunc => $name) {
+        foreach ($this->candles as $cdlfunc => $name) {
             if (function_exists($cdlfunc)) {
                 $tempdata = $cdlfunc($data['open'], $data['high'], $data['low'], $data['close']);
                 if (empty($tempdata)) {
                     continue;
                 }
 
-                $cdlfunc = str_replace('trader_cdl','', $cdlfunc);
+                $cdlfunc = str_replace('trader_cdl', '', $cdlfunc);
 
                 $tmp = array_map('abs', $tempdata); // remove negatives
                 $sum = array_sum($tmp);             // sum it all
@@ -148,7 +126,7 @@ class Candles
                 foreach ($tempdata as $key => $temp) {
                     $ret['all'][$cdlfunc] = $temp;
                     if (abs($temp) > 0) {
-                        $ret['range'][$cdlfunc]    = $name; // that we found this candle
+                        $ret['range'][$cdlfunc] = $name; // that we found this candle
                         $ret['location'][$cdlfunc][] = $key;  // the location in the dataset where this candle is
                     }
                 }
@@ -156,35 +134,34 @@ class Candles
                 $tempdataReIndexed = array_values($tempdata);
                 $closeData = array_values($data['close']);
                 foreach ($tempdataReIndexed as $idx => $cand) {
-                    $sindex = (($idx)-3 < 0 ? 3 : $idx);
-                    if ($sindex+4 > count($closeData)){
+                    $sindex = (($idx) - 3 < 0 ? 3 : $idx);
+                    if ($sindex + 4 > count($closeData)) {
                         $sindex = $sindex - 4;
                     }
-                    $currents = array_slice($closeData, $sindex-3, 7);
-                    if ($cand <> 0) {
-                        $lastfive = @implode(",", $currents);
+                    $currents = array_slice($closeData, $sindex - 3, 7);
+                    if ($cand != 0) {
+                        $lastfive = @implode(',', $currents);
                         $ret['datafor'][$cdlfunc] = $lastfive;
                     }
                 }
 
                 $lastBit = array_slice($tempdata, -3, 3);
                 foreach ($lastBit as $test) {
-                    if ($test <> 0) {
+                    if ($test != 0) {
                         $ret['recently'][$cdlfunc] = $test;
                     }
                 }
                 $last = array_pop($tempdata);
-                if ($last <> 0) {
+                if ($last != 0) {
                     $ret['current'][$cdlfunc] = $last;
                 }
             } else {
                 $ret['undefined'][] = $cdlfunc;
             }
         }
-        #$ret['close'] = $data['close']; #array_pop($data['close']);
-        #$ret['data'] = $data; // maybe useful for graphs?
+        //$ret['close'] = $data['close']; #array_pop($data['close']);
+        //$ret['data'] = $data; // maybe useful for graphs?
 
         return $ret;
     }
-
 }

@@ -1,21 +1,18 @@
 <?php
+
 namespace Bowhead\Console\Commands;
 
-use Bowhead\Console\Kernel;
-use Bowhead\Traits\Signals;
 use Bowhead\Traits\OHLC;
-use Illuminate\Console\Command;
+use Bowhead\Traits\Signals;
 use Bowhead\Util;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use AndreasGlaser\PPC\PPC; // https://github.com/andreas-glaser/poloniex-php-client
+use Illuminate\Console\Command;
+// https://github.com/andreas-glaser/poloniex-php-client
 
 /**
- * Class ExampleCommand
- * @package Bowhead\Console\Commands
+ * Class ExampleCommand.
  */
-class SignalsExampleCommand extends Command {
-
+class SignalsExampleCommand extends Command
+{
     use Signals, OHLC;
 
     /**
@@ -32,12 +29,18 @@ class SignalsExampleCommand extends Command {
      */
     protected $description = 'Forex signals example';
 
-
     public function doColor($val)
     {
-        if ($val == 0){ return 'none'; }
-        if ($val == 1){ return 'green'; }
-        if ($val == -1){ return 'magenta'; }
+        if ($val == 0) {
+            return 'none';
+        }
+        if ($val == 1) {
+            return 'green';
+        }
+        if ($val == -1) {
+            return 'magenta';
+        }
+
         return 'none';
     }
 
@@ -51,24 +54,19 @@ class SignalsExampleCommand extends Command {
         echo "PRESS 'q' TO QUIT AND CLOSE ALL POSITIONS\n\n\n";
         stream_set_blocking(STDIN, 0);
 
-        while(1){
-			$instruments = ['BTC/USD'];
-			
-			$util        = new Util\BrokersUtil();
-			$console     = new \Bowhead\Util\Console();
-			$indicators  = new \Bowhead\Util\Indicators();
+        while (1) {
+            $instruments = ['BTC/USD'];
 
-			$this->signals(false, false, $instruments);
+            $util = new Util\BrokersUtil();
+            $console = new \Bowhead\Util\Console();
+            $indicators = new \Bowhead\Util\Indicators();
 
-			$back = $this->signals(1,2, $instruments);
-			print_r($back);
+            $this->signals(false, false, $instruments);
 
-			sleep(5);
-		}
+            $back = $this->signals(1, 2, $instruments);
+            print_r($back);
 
-
-        return null;
+            sleep(5);
+        }
     }
-
-
 }
