@@ -4,6 +4,7 @@ CURRENT BOWHEAD ROADMAP:
 1. (currently **20%**) Finish the web main page (initial, graphs, signals and indcators)
 2. Finish the strategy builder page (+ backtesting, strategy stats, stub out sections for future ML articles)
 3. Finish Strategy class.
+   * Add social strategy page, upload your own strategies for the community, download strategies to work with and backtest.
 4. Import all current Bowhead strategies into the new Strategy builder.
    * Add strategy builder hooks to web main page
 5. Finish the web interface arb page (arbitrage matrix)
