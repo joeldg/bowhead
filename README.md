@@ -1,3 +1,27 @@
+UPDATE (1/30/2018): **COMMANDS ARE PROBABLY BROKE**, I am still cleaning up from the Bitfinex issues. To summarize, Bitfinex no longer allows accounts from the United States, earlier version of Bowhead was very tied to Bitfinex for data. The recent work is adding Coinigy and CCXT support so Bowhead will work for more than 90 exchanges. I have a full time job a one-year old son, so I have limited time and do as much as I can, so I apologize that it is still being fixed.
+
+CURRENT BOWHEAD ROADMAP:
+1. (currently **20%**) Finish the web main page (initial, graphs, signals and indcators)
+2. Finish the strategy builder page (+ backtesting, strategy stats, stub out sections for future ML articles)
+3. Finish Strategy class.
+   * Add social strategy page, upload your own strategies for the community, download strategies to work with and backtest.
+4. Import all current Bowhead strategies into the new Strategy builder.
+   * Add strategy builder hooks to web main page
+5. Finish the web interface arb page (arbitrage matrix)
+   * Add strategy builder hooks to arb page
+6. Finish the settings page with auto-update options, paper/live trading options, alerts and so on.
+7. Create docs section with links.
+8. Create stats and reports page (show trades, +/-, exchange fees breakdown, arb breakdown and strategy comparisons)
+    --THEN--
+9. Revisit each command and fix.
+10. Revisit all three Bowhead articles and rewrite new versions.
+11. Create cloud-based Bowhead data service, so that Bowhead can get historical and realtime data from ALL exchanges with no API keys. Only provide API keys for those you wish to trade on.
+    * Update Bowhead to use data service
+12. Create YouTube video series on Bowhead, strategies etc.
+13. Get some sleep
+
+Then, hopefully we can start the ML series for Bowhead.
+
 UPDATE (1/26/2018): Vastly cleaned up the web configuration and verified it works with Postgres, and Timescale hypertables (http://timescale.com).
 
 UPDATE (1/08/2018): PREVIEW of the official Docker container, with partial web configuration. Container is using Alpine Linux+Nginx+PHP7.1 with MariaDB and Redis. ... Still a work in progress, but, it will connect to coinigy -or- your ccxt accounts and pull ticker data into the database on the pairs you select in the web interface.
@@ -6,21 +30,14 @@ UPDATE (1/08/2018): PREVIEW of the official Docker container, with partial web c
 docker pull joeldg/bowhead
 
 docker run -d -p 8080:8080 joeldg/bowhead
+
+open http://localhost:8080/setup
 ```
 Then you will need to wait, it takes a while for it to fire up because of the composer update it needs to do.
 When it comes up, it will be on port http://{IP}:8080/setup
 
 via https://github.com/joeldg/bh_docker
 Any feedback, good or bad, hit up the gitter link below.
-
-
-1/06/2018 - MORE Major changes:
- Things are MORE THAN LIKELY BROKE because of the overhaul. I will need some Coinigy testers as I have built a web configuration for Bowhead where you select Coinigy (easy start) or CCXT and then the exchanges and select your trading pairs.
- 
- HIT UP THE Gitter below and I will be posting info there.
- 
- Also, working on an official Docker pull for this off DockerHub and a companion YouTube tutorial for setting it up in on both Mac and AWS (sorry windows folk). If you have sent me an email, I am sorry... I can answer 150 emails about Bowhead or I can get new features for Bowhead done, but not both. I am trying to go through the issues here and am going to clean them all out once the newer web interface is wrapped. (yes.. a web interface!!!!)
-
 
 # bowhead
 [![Gitter](https://badges.gitter.im/ccxt-dev/ccxt.svg)](https://gitter.im/bowhead-bot/Lobby)
