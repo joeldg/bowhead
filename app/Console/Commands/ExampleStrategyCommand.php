@@ -1,19 +1,16 @@
 <?php
+
 namespace Bowhead\Console\Commands;
 
-use Bowhead\Console\Kernel;
 use Bowhead\Traits\OHLC;
-use Illuminate\Console\Command;
 use Bowhead\Util;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use AndreasGlaser\PPC\PPC; // https://github.com/andreas-glaser/poloniex-php-client
+use Illuminate\Console\Command;
+// https://github.com/andreas-glaser/poloniex-php-client
 
 /**
- * Class ExampleCommand
- * @package Bowhead\Console\Commands
+ * Class ExampleCommand.
  */
-class ExampleCommand extends Command
+class ExampleStrategyCommand extends Command
 {
     use OHLC;
 
@@ -59,27 +56,34 @@ class ExampleCommand extends Command
 
     protected $order_cooloff;
 
-
     /**
      * @return int
      */
     public function shutdown()
     {
-        if (!is_array($this->indicator_positions)){
+        if (!is_array($this->indicator_positions)) {
             return 0;
         }
-        foreach($this->indicator_positions as $key => $val) {
+        foreach ($this->indicator_positions as $key => $val) {
             echo "closing $key - $val\n";
             $this->wc->positionClose($val);
         }
+
         return 0;
     }
 
     public function doColor($val)
     {
-        if ($val == 0){ return 'none'; }
-        if ($val == 1){ return 'green'; }
-        if ($val == -1){ return 'magenta'; }
+        if ($val == 0) {
+            return 'none';
+        }
+        if ($val == 1) {
+            return 'green';
+        }
+        if ($val == -1) {
+            return 'magenta';
+        }
+
         return 'none';
     }
 
@@ -94,25 +98,26 @@ class ExampleCommand extends Command
         stream_set_blocking(STDIN, 0);
 
         $instruments = ['BTC/USD'];
-        $util        = new Util\BrokersUtil();
-        $wc          = new Util\Whaleclub($this->instrument);
-        $console     = new \Bowhead\Util\Console();
-        $indicators  = new \Bowhead\Util\Indicators();
+        $util = new Util\BrokersUtil();
+        $wc = new Util\Whaleclub($this->instrument);
+        $console = new \Bowhead\Util\Console();
+        $indicators = new \Bowhead\Util\Indicators();
 
         $this->wc = $wc;
-        register_shutdown_function(array($this, 'shutdown'));  //
+        register_shutdown_function([$this, 'shutdown']);  //
 
-        /**
+        /*
          *  Enter a loop where we check the strategy every minute.
          */
-        while(1) {
+        while (1) {
             if (ord(fgetc(STDIN)) == 113) { // try to catch keypress 'q'
-                echo "QUIT detected...";
-                return null;
+                echo 'QUIT detected...';
+
+                return;
             }
             echo "\n";
 
-            foreach($instruments as $instrument) {
+            foreach ($instruments as $instrument) {
                 $underbought = $overbought = 0;
                 $recentData = $this->getRecentData($instrument);
 
@@ -120,17 +125,17 @@ class ExampleCommand extends Command
                 $cmo = $indicators->cmo($instrument, $recentData);
                 $mfi = $indicators->mfi($instrument, $recentData);
 
-                /** instrument is overbought, we will short */
+                /* instrument is overbought, we will short */
                 if ($cci == -1 && $cmo == -1 && $mfi == -1) {
                     $overbought = 1;
                 }
-                /** It is underbought, we will go LONG */
+                /* It is underbought, we will go LONG */
                 if ($cci == 1 && $cmo == 1 && $mfi == 1) {
                     $underbought = 1;
                 }
 
                 /**
-                 *   THIS SECTION IS FOR DISPLAY
+                 *   THIS SECTION IS FOR DISPLAY.
                  */
                 $line = $console->colorize(" Signals for $instrument:");
                 $line .= $console->colorize(str_pad("cci:$cci", 11), $this->doColor($cci));
@@ -139,7 +144,7 @@ class ExampleCommand extends Command
                 $line .= ($overbought ? $console->colorize(' overbought', 'light_red') : $console->colorize(' overbought', 'dark'));
                 $line .= ($underbought ? $console->colorize(' underbought', 'light_green') : $console->colorize(' underbought', 'dark'));
                 echo "$line";
-                /**
+                /*
                  *  DISPLAY DONE
                  */
 
@@ -147,12 +152,7 @@ class ExampleCommand extends Command
                     $console->buzzer();
                     $current_price = array_pop($recentData['close']);
                     $order = [
-                        'direction' => 'short'
-                        , 'market' => 'BTC/USD'
-                        , 'leverage' => 20
-                        , 'stop_loss' => $current_price + 50
-                        , 'take_profit' => $current_price - 100
-                        , 'size' => 0.1
+                        'direction' => 'short', 'market' => 'BTC/USD', 'leverage' => 20, 'stop_loss' => $current_price + 50, 'take_profit' => $current_price - 100, 'size' => 0.1,
                     ];
                     $position = $wc->positionNew($order);
                     $console->colorize("\nOPENED NEW SHORT POSIITION");
@@ -162,21 +162,14 @@ class ExampleCommand extends Command
                     $console->buzzer();
                     $current_price = array_pop($recentData['close']);
                     $order = [
-                        'direction' => 'long'
-                        , 'market' => 'BTC/USD'
-                        , 'leverage' => 20
-                        , 'stop_loss' => $current_price - 50
-                        , 'take_profit' => $current_price + 100
-                        , 'size' => 0.1
+                        'direction' => 'long', 'market' => 'BTC/USD', 'leverage' => 20, 'stop_loss' => $current_price - 50, 'take_profit' => $current_price + 100, 'size' => 0.1,
                     ];
                     $position = $wc->positionNew($order);
                     $console->colorize("\nOPENED NEW LONG POSIITION");
                     print_r($position);
                 }
             }
-           sleep(8);
+            sleep(8);
         }
     }
-
-
 }

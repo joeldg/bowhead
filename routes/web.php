@@ -14,7 +14,7 @@
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get('/setup',   'Controller@setup');
+Route::get('/setup', 'Controller@setup');
 Route::post('/setup2', 'Controller@setup2');
 Route::get('/setup2', 'Controller@setup2b'); // in case someone right-clicks and tries to open a url.
 Route::post('/setup3', 'Controller@setup3');

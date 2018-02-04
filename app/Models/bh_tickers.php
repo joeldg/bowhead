@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $id
  * @property int $bh_exchanges_id
  * @property string $symbol
- * @property integer $timestamp
+ * @property int $timestamp
  * @property string $datetime
  * @property float $high
  * @property float $low
@@ -34,5 +34,4 @@ class bh_tickers extends Model
      * @var array
      */
     protected $fillable = ['bh_exchanges_id', 'symbol', 'timestamp', 'datetime', 'high', 'low', 'bid', 'ask', 'vwap', 'open', 'close', 'first', 'last', 'change', 'percentage', 'average', 'baseVolume', 'quoteVolume', 'updated_at', 'created_at', 'deleted_at'];
-
 }

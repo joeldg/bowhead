@@ -1,4 +1,5 @@
 <?php
+
 namespace Bowhead\Console\Commands;
 
 use Bowhead\Traits\OHLC;
@@ -40,10 +41,11 @@ class OandaStreamCommand extends Command
             `volume` = VALUES(`volume`),
             `close`  = VALUES(`close`)
         ");
+
         return true;
     }
 
-        /**
+    /**
      * Execute the console command.
      *
      * @return void
@@ -52,51 +54,52 @@ class OandaStreamCommand extends Command
     {
         $console = new Console();
 
-        #echo "PRESS 'q' TO QUIT AND CLOSE ALL POSITIONS\n\n\n";
+        //echo "PRESS 'q' TO QUIT AND CLOSE ALL POSITIONS\n\n\n";
         stream_set_blocking(STDIN, 0);
         $last = [];
-        while(1){
+        while (1) {
             $curr = [];
             if (ord(fgetc(STDIN)) == 113) {
-                echo "QUIT detected...";
-                return null;
+                echo 'QUIT detected...';
+
+                return;
             }
 
-            $pipeB = fopen("quotes",'r');
+            $pipeB = fopen('quotes', 'r');
             $line = fgets($pipeB);
             $results = json_decode($line);
 
             if (empty($results)) {
-              continue;
+                continue;
             }
 
             foreach ($results as $result) {
-              if (is_array($result)) {
-                foreach ($result as $price) {
-                  $ticker = [];
-                  $ticker['tick']['bid'] = round(((float) $price->bids[0]->price + (float) $price->asks[0]->price) / 2, 5);
-                  $ticker['tick']['instrument'] = $price->instrument;
-                  $this->markOHLC($ticker);
-                  $ins = $ticker['tick']['instrument'];
-                  $curr[$ins] = (($price->bids[0]->price + $price->asks[0]->price)/2);
+                if (is_array($result)) {
+                    foreach ($result as $price) {
+                        $ticker = [];
+                        $ticker['tick']['bid'] = round(((float) $price->bids[0]->price + (float) $price->asks[0]->price) / 2, 5);
+                        $ticker['tick']['instrument'] = $price->instrument;
+                        $this->markOHLC($ticker);
+                        $ins = $ticker['tick']['instrument'];
+                        $curr[$ins] = (($price->bids[0]->price + $price->asks[0]->price) / 2);
+                    }
                 }
-              }
             }
 
             $output = [];
             foreach ($curr as $instrument => $bid) {
                 if ($curr[$instrument] > ($last[$instrument] ?? 0)) {
-                    $output[$instrument] = $console->colorize(str_pad($instrument . " " . round($curr[$instrument],3), 14), 'green', 'bold');
-                } elseif($curr[$instrument] < ($last[$instrument] ?? 0)) {
-                    $output[$instrument] = $console->colorize(str_pad($instrument . " " . round($curr[$instrument],3), 14), 'bg_red', 'bold');
+                    $output[$instrument] = $console->colorize(str_pad($instrument.' '.round($curr[$instrument], 3), 14), 'green', 'bold');
+                } elseif ($curr[$instrument] < ($last[$instrument] ?? 0)) {
+                    $output[$instrument] = $console->colorize(str_pad($instrument.' '.round($curr[$instrument], 3), 14), 'bg_red', 'bold');
                 } else {
-                    $output[$instrument] = $console->colorize(str_pad($instrument . " " . round($curr[$instrument],3), 14), 'none');
+                    $output[$instrument] = $console->colorize(str_pad($instrument.' '.round($curr[$instrument], 3), 14), 'none');
                 }
             }
             $last = $curr;
 
             // for cool output uncomment
-            #echo join(' | ', $output) ."\n";
+            //echo join(' | ', $output) ."\n";
         }
     }
 }

@@ -4,14 +4,10 @@ namespace Bowhead\Http\Controllers;
 
 use Bowhead\Traits\Mapper;
 use Illuminate\Http\Request;
-use Dingo\Api\Routing\Helpers;
 use Illuminate\Routing\Controller;
 
-
-
 /**
- * Class Accounts
- * @package Bowhead\Http\Controllers
+ * Class Accounts.
  */
 class Accounts extends Controller
 {
@@ -37,13 +33,13 @@ class Accounts extends Controller
         $this->dataArray = $request->all();
         $this->broker_list = $this->mapped_brokers_list; // from Mapper...
 
-        $brokers = join(', ', $this->broker_list);
+        $brokers = implode(', ', $this->broker_list);
         if (empty($this->dataArray['source'])) {
             $this->errors[] = "'source' cannot be empty, select a brokerage: [$brokers]";
         }
     }
 
-    function __debugInfo()
+    public function __debugInfo()
     {
         // TODO: Implement __debugInfo() method.
     }
@@ -58,6 +54,7 @@ class Accounts extends Controller
         $action = 'accounts_all';
 
         $ret = $this->mapperAccounts($data['source'], ['action' => $action]);
+
         return $ret;
     }
 
@@ -71,27 +68,24 @@ class Accounts extends Controller
         if (!empty($this->errors)) {
             return $this->errors;
         }
+
         return [];
     }
 
     /**
-     * place orders and such
+     * place orders and such.
      */
     public function posttAccountAction()
     {
-
     }
 
     /** modify orders */
     public function patchAccountAction()
     {
-
     }
 
     /** close positions */
     public function deleteAccountAction()
     {
-
     }
-
 }
