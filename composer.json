@@ -10,7 +10,6 @@
         "ccxt/ccxt": "^1.10",
         "dingo/api": "1.0.x@dev",
         "guzzlehttp/guzzle": "^6.2",
-        "krlove/eloquent-model-generator": "^1.2",
         "laravel/framework": "5.4.*",
         "laravel/tinker": "~1.0",
         "orangehill/iseed": "^2.5",
@@ -22,6 +21,7 @@
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
+        "krlove/eloquent-model-generator": "^1.2",
         "mockery/mockery": "0.9.*",
         "phpunit/phpunit": "~5.7"
     },
