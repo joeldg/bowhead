@@ -7,6 +7,7 @@
     "require": {
         "php": ">=5.6.4",
         "ext-trader": "*",
+        "andreas-glaser/poloniex-php-client": "dev-master",
         "ccxt/ccxt": "^1.10",
         "dingo/api": "1.0.x@dev",
         "guzzlehttp/guzzle": "^6.2",
