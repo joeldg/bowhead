@@ -170,7 +170,7 @@ class Controller extends BaseController
             $accounts = $accounts['data'];
             foreach($accounts as $acct) {
                 $coinigy_accounts[] = $acct['exch_name'];
-                $exhange_model = Models\bh_exchanges::where('exchange','=', $acct['exch_name'])->get()->first();
+                $exhange_model = Models\bh_exchanges::where('coinigy','=', 1)->where('exchange','=', $acct['exch_name'])->get()->first();
                 if ($exhange_model) {
                     $preferred[$exhange_model->id] =$exhange_model->url;
                 }
@@ -178,7 +178,7 @@ class Controller extends BaseController
 
             $exchdata = [];
             foreach ($response['data'] as $exch) {
-                $exhange_model = Models\bh_exchanges::where('exchange','=', $exch['exch_name'])->get()->first();
+                $exhange_model = Models\bh_exchanges::where('coinigy','=', 1)->where('exchange','=', $exch['exch_name'])->get()->first();
                 $exchdata[$exhange_model->id] = $exch['exch_name'];
             }
 
