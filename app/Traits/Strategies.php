@@ -212,10 +212,11 @@ trait Strategies
         $adx         = $indicators->adx($pair, $data);
 
         $_sma6       = trader_sma($data['close'], 6);
-        $sma6        = array_pop($_sma6);
-        $prior_sma6  = array_pop($_sma6);
-
         $_sma40      = trader_sma($data['close'], 40);
+        // if one of them fails return null
+        if($_sma6 === false || $_sma40 === false) return null;
+	    $sma6        = array_pop($_sma6);
+	    $prior_sma6  = array_pop($_sma6);
         $sma40       = array_pop($_sma40);
         $prior_sma40 = array_pop($_sma40);
         /** have the lines crossed? */
@@ -249,6 +250,8 @@ trait Strategies
         $rsi = $indicators->rsi($pair, $data, 14); // 19 more accurate?
         /** custom macd - not using bowhead indicator macd*/
         $macd = trader_macd($data['close'], 24, 52, 18);
+        // on fail just return 0
+        if($macd === false) return 0;
         $macd_raw = $macd[0];
         $signal   = $macd[1];
         $hist     = $macd[2];
@@ -525,8 +528,10 @@ trait Strategies
         $indicators = new Indicators();
 
         $adx  = trader_adx($data['high'], $data['low'], $data['close'], 25);
+	    $mom  = trader_mom($data['close'], 14);
+	    if($adx === false || $mom === false) return 0;
         $adx  = array_pop($adx);
-        $mom  = trader_mom($data['close'], 14);
+
         $mom  = array_pop($mom);
         $fsar = $indicators->fsar($pair, $data);
 
