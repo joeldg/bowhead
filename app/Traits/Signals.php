@@ -41,7 +41,7 @@ trait Signals
      * @param bool $return
      * @param bool $compile
      */
-    public function signals($return=false, $compile=false, $instruments=null , $limit = 168)
+    public function signals($return=false, $compile=false, $instruments=null)
     {
         $lines = [];
         $inds        = ['rsi','stoch','stochrsi','macd','adx','willr','cci','atr','hli','ultosc','roc','er'];
