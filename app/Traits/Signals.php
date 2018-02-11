@@ -41,7 +41,7 @@ trait Signals
      * @param bool $return
      * @param bool $compile
      */
-    public function signals($return=false, $compile=false, $instruments=null)
+    public function signals($return=false, $compile=false, $instruments=null , $limit = 168)
     {
         $lines = [];
         $inds        = ['rsi','stoch','stochrsi','macd','adx','willr','cci','atr','hli','ultosc','roc','er'];
@@ -52,8 +52,16 @@ trait Signals
         $console     = new Console();
         $util        = new BrokersUtil();
 
-        foreach ($instruments as $pair) {
-            $data  = $this->getRecentData($pair);
+        foreach ($instruments as $exchange_id => $pair) {
+            $data  = $this->getRecentData($pair , $limit);
+            //take last if $exchange_id is not defined needed now because we can get data from multiple exchanges
+	        if(!isset($data[$exchange_id])){
+	        	array_pop($data);
+	        }
+	        else{
+		        $data = $data[$exchange_id];
+	        }
+
             $flags = [];
             $flags['rsi']         = $indicators->rsi($pair, $data);
             $flags['stoch']       = $indicators->stoch($pair, $data);
