@@ -52,8 +52,16 @@ trait Signals
         $console     = new Console();
         $util        = new BrokersUtil();
 
-        foreach ($instruments as $pair) {
+        foreach ($instruments as $exchange_id => $pair) {
             $data  = $this->getRecentData($pair);
+            //take last if $exchange_id is not defined needed now because we can get data from multiple exchanges
+	        if(!isset($data[$exchange_id])){
+	        	array_pop($data);
+	        }
+	        else{
+		        $data = $data[$exchange_id];
+	        }
+
             $flags = [];
             $flags['rsi']         = $indicators->rsi($pair, $data);
             $flags['stoch']       = $indicators->stoch($pair, $data);
