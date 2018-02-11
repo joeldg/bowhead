@@ -451,7 +451,8 @@ class Indicators
         array_pop($data['mid']); // take most recent off.
         $ao_sma_3 = trader_sma($data['mid'], 5);
         $ao_sma_4 = trader_sma($data['mid'], 34);
-
+		//check if they return error if yes return 0 for now trend
+		if($ao_sma_1 === false || $ao_sma_2 === false || $ao_sma_3 === false || $ao_sma_4 === false) return 0;
         if ($return_raw) {
             return ($ao_sma_1 - $ao_sma_2); // return the actual values of the oscillator
         } else {
