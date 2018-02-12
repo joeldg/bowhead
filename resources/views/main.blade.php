@@ -6,101 +6,102 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>Bowhead</title>
-    <!-- scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/d3@4.12.2/build/d3.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/epoch-charting@0.8.4/dist/js/epoch.min.js"></script>
 
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
+    <!-- dojichart will work for now, something simple was needed -->
+    <link href="https://raw.githubusercontent.com/dojichart/dojichart/master/dist/dojichart.min.css" rel="stylesheet" type="text/css">
+    <script src="https://raw.githubusercontent.com/dojichart/dojichart/master/dist/dojichart.min.js"></script>
+    <link href="/css/camphor.scss" rel="stylesheet" type="text/css">
+    <link href="/css/button.scss" rel="stylesheet" type="text/css">
+    <link href="/css/lit.css" rel="stylesheet" type="text/css">
 
     <!-- Styles -->
     <style>
-        html, body {
-            background-color: #fff;
-            color: #636b6f;
-            font-family: 'Raleway', sans-serif;
-            font-weight: 100;
-            height: 100vh;
-            margin: 50;
+        ::-webkit-scrollbar {
+            -webkit-appearance: none;
+            width: 7px;
         }
-
-        .full-height {
-            height: 100vh;
+        ::-webkit-scrollbar-thumb {
+            border-radius: 4px;
+            background-color: rgba(0,0,0,.5);
+            box-shadow: 0 0 1px rgba(255,255,255,.5);
         }
-
-        .flex-center {
-            align-items: center;
-            display: flex;
-            justify-content: center;
+        body {
+            font-family: Camphor, Open Sans, Segoe UI, sans-serif;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #8eb4cb;
         }
-
-        .position-ref {
-            position: relative;
+        .scrolly {
+            border: 0px solid black;
+            overflow-x: visible;
+            overflow-y: scroll;
+            height: 250px;
+            max-heigth:250px;
         }
-
-        .top-right {
-            position: absolute;
-            right: 10px;
-            top: 18px;
-        }
-
         .err {
             color: #ff6666;
             padding: 0 25px;
             letter-spacing: .1rem;
         }
-
-        .content {
-            text-align: left;
-            margin: 50;
+        .c {
+            background-color: #f5f5f5;
         }
-        .contentB {
-            text-align: left;
-            margin: 150;
-        }
-
-        .title {
-            font-size: 44px;
-        }
-
-        .links > a {
-            color: #636b6f;
-            padding: 0 25px;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: .1rem;
-            text-decoration: none;
-            text-transform: uppercase;
-        }
-
-        a:hover + div {
-            display: block;
-        }​
-
-         .m-b-md {
-             margin-bottom: 30px;
-         }
-
-        #container {
-            display: table;
-        }
-
-        #row  {
-            display: table-row;
-        }
-
-        #left, #right, #middle {
-            display: table-cell;
-        }
+        a { color: #FF0000; }
     </style>
 </head>
 <body>
-<div class="content">
+<div class="c w-100">
     <p class="err">{{ $notice }}</p>
-    <b class="title">Bowhead settings:</b>
-    <p>
-        TODO
-    </p>
+    <div class="row card">
+        <div class="7 col">B O W H E A D</div>
+        <div class="1 col"><a href="/exchanges">api keys</a></div>
+        <div class="1 col"><a href="#">arbitrage</a></div>
+        <div class="1 col"><a href="#">builder</a></div>
+        <div class="1 col"><a href="#">docs</a></div>
+        <div class="1 col"><a href="#">settings</a></div>
+    </div>
+    <div class="row ">
+        <div class="2 col" style="vertical-align: top;">
+        <div class="scrolly">
+            @foreach ($exchanges as $ekey => $exchange)
+                @if ($e == $ekey)
+                    <a href="?enc={{encrypt(['p'=>$p, 'e' => $ekey])}}" style="background: #EEE;"><strong>{{ $exchange }}</strong></a><br>
+                @else
+                    <a href="?enc={{encrypt(['p'=>$p, 'e' => $ekey])}}">{{ $exchange }}</a><br>
+                @endif
+            @endforeach
+        </div>
+        </div>
+        <div class="8 col">
+            <div class="">
+            <img src="http://via.placeholder.com/900x350">
+            </div>
+        </div>
+        <div class="2 col" style="vertical-align: top;">
+            <div class="scrolly">
+            @foreach ($pairs as $pair)
+                    @if ($p == $pair)
+                        <a href="?enc={{encrypt(['p'=>$pair, 'e' => $e])}}" style="background: #EEE;"><strong>{{ $pair }}</strong></a><br>
+                    @else
+                        <a href="?enc={{encrypt(['p'=>$pair, 'e' => $e])}}">{{ $pair }}</a><br>
+                    @endif
+            @endforeach
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="6 col card">
+        </div>
+        <div class="6 col card">
+        </div>
+    </div>
+
+
+    <div class="row w-100">
+
+    </div>
 </div>
 
 </div>

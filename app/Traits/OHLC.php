@@ -56,7 +56,7 @@ trait OHLC
         $connection_name = config('database.default');
         $key = 'recent::'.$pair.'::'.$limit."::$day_data::$hour::$periodSize::$connection_name";
         if(\Cache::has($key)) {
-            //return \Cache::get($key);
+            return \Cache::get($key);
         }
 
         $timeslice = 60;
@@ -106,7 +106,7 @@ trait OHLC
          *  Postgres supports series() mysql does not, timescale has buckets, the others don't etc.
          *  having support for timescaledb is important for the scale of the project.
          *
-         *  none of these queries can be done through our eloquent models unfourtunatly.
+         *  none of these queries can be done through our eloquent models unfortunately.
          */
         if ($connection_name == 'pgsql') {
             if (Config::bowhead_config('TIMESCALEDB')) {
