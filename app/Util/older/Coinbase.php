@@ -491,7 +491,7 @@ class Coinbase
             $error = curl_errno($curl);
             $message = curl_error($curl);
             curl_close($curl);
-            #error_log('NETWORK ERROR', $message . " (" . $error . ")");
+            #error_log('NETWORK ERROR'. $message . " (" . $error . ")");
         }
 
         $statusCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -499,7 +499,7 @@ class Coinbase
 
         if($statusCode != 200) {
             print_r($response);
-            error_log('STATUS CODE', $statusCode . ' ' . $response);
+            error_log('STATUS CODE'. $statusCode . ' ' . $response);
         }
         return array( "statusCode" => $statusCode, "body" => $response );
     }
