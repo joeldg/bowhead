@@ -1073,7 +1073,17 @@ class Indicators
         if (empty($data)) {
             $data = $this->getRecentData($pair);
         }
-        $hts = trader_ht_sine($data['open'],$data['close']);
+
+		// version 0.4.1 of PECL Trader extension uses 1 argument for trader_ht_sine function instead of 2 arguments previously
+
+		// see changelog for version 0.4.1 at http://pecl.php.net/package/trader
+		
+		if(phpversion("trader") >= '0.4.1') {
+			$hts = trader_ht_sine($data['close']);
+		} else {
+			$hts = trader_ht_sine($data['open'],$data['close']);
+		}
+        
         $dcsine     = array_pop($hts[1]);
         $p_dcsine   = array_pop($hts[1]);
         // leadsine is the first one it looks like.
