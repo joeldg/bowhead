@@ -1,3 +1,5 @@
+UPDATE (4/6/2018) see follow-up: https://medium.com/@joeldg/cryptocurrency-bot-framework-followup-3bc289322fb1
+
 UPDATE (3/15/2018) I'm still here, left my old job, started a new job and been hectic. Work will resume on Bowhead this weekend.
 
 UPDATE (2/8/2018): **COMMANDS ARE PROBABLY BROKE** updated project to Laravel 5.6 and made changes to coinigy data getter.
