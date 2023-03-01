@@ -1,3 +1,7 @@
+# **THIS PROJECT WILL NOT BE MAINTAINED MOVING FORWARD**
+## I AM LEAVING IT HERE BECAUSE THERE IS A LOT OF INTERESTING DATA (arrays) THAT CAN BE REUSED IN OTHER PROJECTS.
+
+
 UPDATE (4/6/2018) see follow-up: https://medium.com/@joeldg/cryptocurrency-bot-framework-followup-3bc289322fb1
 
 UPDATE (3/15/2018) I'm still here, left my old job, started a new job and been hectic. Work will resume on Bowhead this weekend.
